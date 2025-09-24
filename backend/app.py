@@ -183,12 +183,6 @@ classification_result_model = api.model('ClassificationResult', {
     'success': fields.Boolean(description='Classification success status', example=True)
 })
 
-classification_with_nutrition_model = api.model('ClassificationWithNutrition', {
-    'predicted_class': fields.String(description='Predicted food class', example='pizza'),
-    'confidence': fields.Float(description='Confidence percentage', example=95.67),
-    'nutrition_data': fields.Raw(description='Nutritional information from food_summary'),
-    'success': fields.Boolean(description='Classification success status', example=True)
-})
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -256,28 +250,9 @@ class HealthCheck(Resource):
 
 # Search endpoint
 # Arguments contract (query string):
-# - query (str, required): search query
-# - dataType (str, optional): one of ['Foundation','SR Legacy','Survey','Branded']
-# - pageSize (int, optional, default 50, 1..200)
-# - pageNumber (int, optional, default 1)
-# - sortBy (str, optional): one of ['dataType.keyword','lowercaseDescription.keyword','fdcId','publishedDate']
-# - sortOrder (str, optional): ['asc','desc']
-# - brandOwner (str, optional)
+# - food_name (str, required): search food for food details
 search_parser = api.parser()
-search_parser.add_argument('query', type=str, required=True, help='Search query for food items', location='args')
-search_parser.add_argument('dataType', type=str, help='Filter by data type', location='args',
-                          choices=['Foundation', 'SR Legacy', 'Survey', 'Branded'])
-search_parser.add_argument('pageSize', type=int, help='Number of results per page (1-200)',
-                          location='args', default=50)
-search_parser.add_argument('pageNumber', type=int, help='Page number (starts from 1)',
-                          location='args', default=1)
-search_parser.add_argument('sortBy', type=str, help='Field to sort results by', location='args',
-                          choices=['dataType.keyword', 'lowercaseDescription.keyword', 'fdcId', 'publishedDate'])
-search_parser.add_argument('sortOrder', type=str, help='Sort order for results', location='args',
-                          choices=['asc', 'desc'])
-search_parser.add_argument('brandOwner', type=str, help='Filter by brand owner (for branded foods)', location='args')
-
-
+search_parser.add_argument('food_name', type=str, required=True, help='Search food for food details', location='args')
 @search_ns.route('/search')
 class FoodSearch(Resource):
     @search_ns.doc('search_foods')
@@ -302,26 +277,21 @@ class FoodSearch(Resource):
         """
         args = search_parser.parse_args()
 
-        if not args['query']:
+        if not args['food_name']:
             return {'error': 'Query parameter is required'}, 400
 
         try:
             # Prepare parameters for USDA API
             params = {
-                'query': args['query'],
-                'pageSize': args['pageSize'],
-                'pageNumber': args['pageNumber']
+                'query': args['food_name'],
+                'pageSize': 1,
+                'pageNumber': 1
             }
 
             # Add optional parameters
-            if args['dataType']:
-                params['dataType'] = args['dataType']
-            if args['sortBy']:
-                params['sortBy'] = args['sortBy']
-            if args['sortOrder']:
-                params['sortOrder'] = args['sortOrder']
-            if args['brandOwner']:
-                params['brandOwner'] = args['brandOwner']
+            params['sortBy'] = 'dataType.keyword'
+            params['sortOrder'] = 'asc'
+
 
             response = make_usda_request('foods/search', params)
             return response.json()
@@ -331,50 +301,65 @@ class FoodSearch(Resource):
             return {'error': 'Failed to search foods'}, 500
 
 # Image Classification endpoints
-classify_parser = api.parser()
-classify_parser.add_argument('image_path', type=str, required=True, help='Path to the image file to classify', location='args')
-
 @classify_ns.route('/classify')
 class ImageClassify(Resource):
     @classify_ns.doc('classify_food_image')
-    @classify_ns.expect(classify_parser)
-    @classify_ns.marshal_with(classification_result_model)
+    @classify_ns.response(200, 'Prediction result', classification_result_model)
     @classify_ns.response(400, 'Bad Request', error_model)
     @classify_ns.response(500, 'Internal Server Error', error_model)
-    def get(self):
-        """Classify a food image and return the predicted food class.
+    @classify_ns.expect(api.parser().add_argument('file', location='files', type='file', required=True, help='Image file to classify (jpg, jpeg, png)'))
+    def post(self):
+        """Classify a food image using machine learning and return the predicted food class.
 
-        Inputs:
-        - query: image_path (str) - path to the image file
-        Behavior:
-        - Loads the classification model if not already loaded
-        - Preprocesses the image
-        - Makes prediction using EfficientNet model
-        Outputs:
-        - JSON with predicted_class, confidence, and success status
-        Errors:
-        - 400: missing image_path or file not found
-        - 500: model loading or prediction errors
-        Example:
-        - GET /api/classify?image_path=/path/to/pizza.jpg
+        This endpoint accepts an image file upload and uses a trained EfficientNet model
+        to classify the food type. The model can recognize 33 different food categories.
+
+        **Supported Food Categories:**
+        apple_pie, baked_potato, burger, butter_naan, chai, chapati, cheesecake,
+        chicken_curry, chole_bhature, crispy_chicken, dal_makhani, dhokla, donut,
+        fried_rice, fries, hot_dog, ice_cream, idli, jalebi, kaathi_rolls, kadai_paneer,
+        kulfi, masala_dosa, momos, omelette, paani_puri, pakode, pav_bhaji, pizza,
+        samosa, sandwich, sushi, taco, taquito
+
+        **Request Format:**
+        - Content-Type: multipart/form-data
+        - Field name: 'file'
+        - Supported formats: JPG, JPEG, PNG
+        - Maximum file size: Recommended under 10MB
+
+        **Response Format:**
+        ```json
+        {
+            "predicted_class": "pizza",
+            "confidence": 95.67,
+            "success": true
+        }
+        ```
+
+        **Usage Example:**
+        ```bash
+        curl -X POST "http://localhost:8004/api/classify" \\
+             -H "Content-Type: multipart/form-data" \\
+             -F "file=@/path/to/food_image.jpg"
+        ```
+
+        **Error Responses:**
+        - 400: Missing file, empty filename, or invalid file format
+        - 500: Model loading errors, prediction failures, or server errors
         """
-        args = classify_parser.parse_args()
+        if 'file' not in request.files:
+            return {'error': 'No file part in the request'}, 400
 
-        if not args['image_path']:
-            return {'error': 'image_path parameter is required'}, 400
-
-        image_path = args['image_path']
+        file = request.files['file']
+        if file.filename == '':
+            return {'error': 'No selected file'}, 400
 
         try:
-            # Check if file exists
-            if not os.path.exists(image_path):
-                return {'error': f'Image file not found: {image_path}'}, 400
-
             # Load the classification model
             model = load_classification_model()
 
             # Preprocess the image
-            image_tensor = preprocess_image(image_path)
+            image_tensor = preprocess_image(file)
 
             # Make prediction
             with torch.no_grad():
