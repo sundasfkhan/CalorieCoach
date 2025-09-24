@@ -139,12 +139,10 @@ api = Api(
 # Define namespaces
 health_ns = Namespace('health', description='Health check operations')
 search_ns = Namespace('search', description='Food search operations')
-food_ns = Namespace('food', description='Food detail operations')
 classify_ns = Namespace('classify', description='Food classification operations')
 
 api.add_namespace(health_ns)
 api.add_namespace(search_ns, path='/api')
-api.add_namespace(food_ns, path='/api')
 api.add_namespace(classify_ns, path='/api')
 
 # Data models for OpenAPI documentation
@@ -325,113 +323,6 @@ class FoodSearch(Resource):
             logger.error(f"Error searching foods: {e}")
             return {'error': 'Failed to search foods'}, 500
 
-# Food detail endpoint
-# Arguments contract (query string):
-# - format (str, optional, default 'full'): ['full','abridged']
-# - nutrients (str, optional): comma-separated nutrient IDs (e.g., '203,204')
-food_detail_parser = api.parser()
-food_detail_parser.add_argument('format', type=str, help='Response format (full or abridged)',
-                                location='args', default='full', choices=['full', 'abridged'])
-food_detail_parser.add_argument('nutrients', type=str, help='Comma-separated list of nutrient IDs', location='args')
-
-@food_ns.route('/food/<int:fdc_id>')
-class FoodDetail(Resource):
-    @food_ns.doc('get_food_details')
-    @food_ns.expect(food_detail_parser)
-    @food_ns.marshal_with(food_model)
-    @food_ns.response(400, 'Bad Request', error_model)
-    @food_ns.response(404, 'Food Not Found', error_model)
-    @food_ns.response(500, 'Internal Server Error', error_model)
-    def get(self, fdc_id):
-        """Get a single food by FDC ID.
-
-        Inputs:
-        - path: fdc_id (int)
-        - query: format ('full'|'abridged'), nutrients (csv)
-        Behavior:
-        - Proxies to USDA 'food/{fdc_id}' endpoint
-        Outputs:
-        - JSON object describing the food
-        Errors:
-        - 404: if USDA returns not found
-        - 500: on other failures
-        Example:
-        - GET /api/food/2344719?format=abridged
-        """
-        args = food_detail_parser.parse_args()
-
-        try:
-            params = {
-                'format': args['format']
-            }
-
-            if args['nutrients']:
-                params['nutrients'] = args['nutrients']
-
-            response = make_usda_request(f'food/{fdc_id}', params)
-            return response.json()
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching food details: {e}")
-            if e.response and e.response.status_code == 404:
-                return {'error': 'Food not found'}, 404
-            return {'error': 'Failed to fetch food details'}, 500
-
-# Multiple foods endpoint
-# Arguments contract (query string):
-# - fdcIds (str, required): comma-separated list of IDs
-# - format (str, optional, default 'full'): ['full','abridged']
-# - nutrients (str, optional)
-foods_parser = api.parser()
-foods_parser.add_argument('fdcIds', type=str, required=True, help='Comma-separated list of FDC IDs', location='args')
-foods_parser.add_argument('format', type=str, help='Response format (full or abridged)',
-                         location='args', default='full', choices=['full', 'abridged'])
-foods_parser.add_argument('nutrients', type=str, help='Comma-separated list of nutrient IDs', location='args')
-
-@food_ns.route('/foods')
-class MultipleFoods(Resource):
-    @food_ns.doc('get_multiple_foods')
-    @food_ns.expect(foods_parser)
-    @food_ns.marshal_list_with(food_model)
-    @food_ns.response(400, 'Bad Request', error_model)
-    @food_ns.response(404, 'Foods Not Found', error_model)
-    @food_ns.response(500, 'Internal Server Error', error_model)
-    def get(self):
-        """Get multiple foods by FDC IDs.
-
-        Inputs:
-        - query: fdcIds (csv), format, nutrients
-        Behavior:
-        - Proxies to USDA 'foods' endpoint with the provided IDs
-        Outputs:
-        - JSON array of food objects
-        Errors:
-        - 400: missing fdcIds
-        - 500: upstream/network errors
-        Example:
-        - GET /api/foods?fdcIds=2344719,2344720&format=full
-        """
-        args = foods_parser.parse_args()
-
-        if not args['fdcIds']:
-            return {'error': 'fdcIds parameter is required'}, 400
-
-        try:
-            params = {
-                'fdcIds': args['fdcIds'],
-                'format': args['format']
-            }
-
-            if args['nutrients']:
-                params['nutrients'] = args['nutrients']
-
-            response = make_usda_request('foods', params)
-            return response.json()
-
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching foods: {e}")
-            return {'error': 'Failed to fetch foods'}, 500
-
 # Image Classification endpoints
 classify_parser = api.parser()
 classify_parser.add_argument('image_path', type=str, required=True, help='Path to the image file to classify', location='args')
@@ -505,82 +396,6 @@ class ImageClassify(Resource):
 classify_nutrition_parser = api.parser()
 classify_nutrition_parser.add_argument('image_path', type=str, required=True, help='Path to the image file to classify', location='args')
 
-@classify_ns.route('/classify-with-nutrition')
-class ImageClassifyWithNutrition(Resource):
-    @classify_ns.doc('classify_food_image_with_nutrition')
-    @classify_ns.expect(classify_nutrition_parser)
-    @classify_ns.marshal_with(classification_with_nutrition_model)
-    @classify_ns.response(400, 'Bad Request', error_model)
-    @classify_ns.response(500, 'Internal Server Error', error_model)
-    def get(self):
-        """Classify a food image and return the predicted food class with nutritional information.
-
-        Inputs:
-        - query: image_path (str) - path to the image file
-        Behavior:
-        - Classifies the image using the EfficientNet model
-        - Fetches nutritional information using food_summary
-        Outputs:
-        - JSON with predicted_class, confidence, nutrition_data, and success status
-        Errors:
-        - 400: missing image_path or file not found
-        - 500: model loading, prediction, or nutrition lookup errors
-        Example:
-        - GET /api/classify-with-nutrition?image_path=/path/to/pizza.jpg
-        """
-        args = classify_nutrition_parser.parse_args()
-
-        if not args['image_path']:
-            return {'error': 'image_path parameter is required'}, 400
-
-        image_path = args['image_path']
-
-        try:
-            # Check if file exists
-            if not os.path.exists(image_path):
-                return {'error': f'Image file not found: {image_path}'}, 400
-
-            # Load the classification model
-            model = load_classification_model()
-
-            # Preprocess the image
-            image_tensor = preprocess_image(image_path)
-
-            # Make prediction
-            with torch.no_grad():
-                output = model(image_tensor)
-
-            # Get the predicted class
-            probabilities = torch.nn.functional.softmax(output, dim=1)
-            predicted_class_index = torch.argmax(probabilities, dim=1).item()
-            predicted_class_name = CLASS_NAMES[predicted_class_index]
-            confidence = probabilities[0][predicted_class_index].item() * 100
-
-            # Get nutritional information
-            import asyncio
-            try:
-                nutrition_data = asyncio.run(food_summary(predicted_class_name))
-            except Exception as nutrition_error:
-                logger.warning(f"Failed to get nutrition data: {nutrition_error}")
-                nutrition_data = {
-                    'error': 'Nutrition data unavailable',
-                    'summary': f'Classification successful but nutrition lookup failed for {predicted_class_name}'
-                }
-
-            return {
-                'predicted_class': predicted_class_name,
-                'confidence': round(confidence, 2),
-                'nutrition_data': nutrition_data,
-                'success': True
-            }
-
-        except FileNotFoundError as e:
-            logger.error(f"Model file not found: {e}")
-            return {'error': 'Classification model not found'}, 500
-        except Exception as e:
-            logger.error(f"Error during image classification: {e}")
-            return {'error': f'Classification failed: {str(e)}'}, 500
-
 # OpenAPI JSON endpoint
 @app.route('/openapi.json')
 def get_openapi_json():
@@ -598,10 +413,7 @@ if __name__ == '__main__':
     print('Available endpoints:')
     print('  GET /health - Health check')
     print('  GET /api/search?query=... - Search foods')
-    print('  GET /api/food/<fdc_id> - Get food details')
-    print('  GET /api/foods?fdcIds=... - Get multiple foods')
     print('  GET /api/classify?image_path=... - Classify food image')
-    print('  GET /api/classify-with-nutrition?image_path=... - Classify with nutrition data')
     print('  GET /docs/ - Interactive OpenAPI documentation')
     print('  GET /openapi.json - OpenAPI JSON specification')
 
