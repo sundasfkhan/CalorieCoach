@@ -158,7 +158,7 @@ CalorieCoach/
 Start the Flask API server:
 ```bash
 cd backend
-python app.py
+python app_fastapi.py
 ```
 
 The API will be available at `http://localhost:8004`
