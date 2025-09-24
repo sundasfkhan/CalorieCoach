@@ -183,14 +183,9 @@ python mcp_server.py
 **Food Classification:**
 ```bash
 cd frontend
-python main.py
+python main.py 
 ```
-
-**Ingredient Analysis with GPT-4 Vision:**
-```bash
-cd frontend
-python main_agent.py
-```
+ 
 
 ### CLI Tools
 

@@ -1,109 +1,109 @@
-import os
-import base64
-from openai import OpenAI
-import torch
-from torchvision import models, transforms
+import streamlit as st
 from PIL import Image
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.optim import lr_scheduler
+import torch.backends.cudnn as cudnn
+import numpy as np
+import torchvision
+from torchvision import datasets, models, transforms
+import io
 
+if __name__ == '__main__':
 
-# --- Function to use your pre-trained PyTorch model ---
-def get_food_class_from_model(image_path):
-    """
-    Loads a pre-trained PyTorch model to classify the food in the image.
+    # Define the class labels based on your training
+    class_names = ['apple_pie',
+                   'baked_potato',
+                   'burger',
+                   'butter_naan',
+                   'chai',
+                   'chapati',
+                   'cheesecake',
+                   'chicken_curry',
+                   'chole_bhature',
+                   'crispy_chicken',
+                   'dal_makhani',
+                   'dhokla',
+                   'donut',
+                   'fried_rice',
+                   'fries',
+                   'hot_dog',
+                   'ice_cream',
+                   'idli',
+                   'jalebi',
+                   'kaathi_rolls',
+                   'kadai_paneer',
+                   'kulfi',
+                   'masala_dosa',
+                   'momos',
+                   'omelette',
+                   'paani_puri',
+                   'pakode',
+                   'pav_bhaji',
+                   'pizza',
+                   'samosa',
+                   'sandwich',
+                   'sushi',
+                   'taco',
+                   'taquito']
 
-    Args:
-        image_path (str): The path to the image file.
-
-    Returns:
-        str: The predicted class name of the food.
-    """
-    try:
-        # Load a pre-trained model (e.g., ResNet18) and set it to evaluation mode
-        model = models.efficientnet_v2_m(pretrained=True)
+    # --- 1. Load the Model ---
+    # This function caches the model so it only loads once
+    @st.cache_resource
+    def load_model():
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model_path = "./../models/model_efficientnet_v2_m_1.pth"
+        model = torchvision.models.efficientnet_v2_m(pretrained=False)
+        num_ftrs = model.classifier[1].in_features
+        model.classifier[1] = nn.Linear(num_ftrs, len(class_names))
+        # You MUST change the last number to match your number of classes
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model = model.to(device)
         model.eval()
+        return model
 
-        # Define the image transformations required by the pre-trained model
-        # Pre-trained models on ImageNet expect input images of a specific size and normalization
+
+    model = load_model()
+
+    # --- 2. Set Up the UI ---
+    st.title("UFA Calorie Coach - Food Image Classifier")
+    st.write("Upload an image to get a class prediction.")
+
+    uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+
+
+    # --- 3. Prediction Logic ---
+    if uploaded_file is not None:
+        # Display the uploaded image
+        image = Image.open(uploaded_file)
+        st.image(image, caption="Uploaded Image", use_column_width=True)
+        st.write("")
+        st.write("Classifying...")
+
+        # Pre-process the image with the same transformations as validation data
         preprocess = transforms.Compose([
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])
 
-        # Load the image using PIL and apply the transformations
-        img = Image.open(image_path).convert('RGB')
-        img_tensor = preprocess(img).unsqueeze(0)  # Add a batch dimension
+        # Process the image and unsqueeze to add a batch dimension
+        image_tensor = preprocess(image).unsqueeze(0)
 
-        # Make a prediction with the model
+        # Make a prediction
         with torch.no_grad():
-            outputs = model(img_tensor)
+            output = model(image_tensor)
 
-        # Get the predicted class index
-        _, predicted_idx = torch.max(outputs, 1)
+        # Get the predicted class
+        probabilities = torch.nn.functional.softmax(output, dim=1)
+        predicted_class_index = torch.argmax(probabilities, dim=1).item()
+        predicted_class_name = class_names[predicted_class_index]
+        confidence = probabilities[0][predicted_class_index].item() * 100
 
-        # Load the class names to map the index to a human-readable name
-        # You would need to load your custom class names here.
-        # This example uses ImageNet's class labels as a placeholder.
-        # You can find these labels in a text file online, for example.
-        with open("imagenet_classes.txt") as f:
-            class_names = [line.strip() for line in f.readlines()]
+        # Display the result to the user
+        st.success(f"Prediction: **{predicted_class_name}**")
+        st.info(f"Confidence: {confidence:.2f}%")
 
-        predicted_food_name = class_names[predicted_idx.item()]
-
-        return predicted_food_name
-
-    except FileNotFoundError:
-        print(f"Error: The image file at {image_path} was not found.")
-        return None
-    except Exception as e:
-        print(f"An error occurred during model prediction: {e}")
-        return None
-
-
-# --- Function to query OpenAI based on the food name ---
-def get_nutritional_info_from_openai(food_name):
-    """
-    Queries OpenAI for ingredients and nutritional information based on a food name.
-    """
-    if not food_name:
-        return "Food name could not be identified by the model."
-
-    client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-    prompt = f"Provide the common ingredients and a brief summary of the nutritional information (calories, protein, carbs, fats) for a typical serving of {food_name}. Please be concise and use a clear format."
-
-    try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=300
-        )
-        return response.choices[0].message.content.strip()
-
-    except Exception as e:
-        return f"Error from OpenAI API: {e}"
-
-
-# --- Main part of the script ---
-if __name__ == "__main__":
-    image_file_path = r"C:\Projects\StreamlitTest\pizza-1003.jpg"
-
-    if os.path.exists(image_file_path):
-        # Step 1: Use your PyTorch model to get the food name
-        food_name = get_food_class_from_model(image_file_path)
-
-        if food_name:
-            print(f"Your ML model identified the food as: **{food_name}**")
-
-            # Step 2: Use the identified name to query OpenAI
-            info = get_nutritional_info_from_openai(food_name)
-
-            print("\n--- Ingredients and Nutritional Information ---")
-            print(info)
-        else:
-            print("Failed to classify the food. Check your model and image.")
-    else:
-        print(f"Image file '{image_file_path}' not found. Please verify the path.")

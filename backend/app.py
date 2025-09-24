@@ -21,7 +21,7 @@ Notes:
 import os
 import logging
 from typing import Dict, Any
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, redirect
 from flask_restx import Api, Resource, fields, Namespace
 import requests
 from dotenv import load_dotenv
@@ -194,6 +194,12 @@ classification_with_nutrition_model = api.model('ClassificationWithNutrition', {
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Add redirect route for root URL
+@app.route('/')
+def index():
+    """Redirect root URL to API documentation."""
+    return redirect('/docs')
+
 # Utility functions
 def make_usda_request(endpoint: str, params: Dict[str, Any]) -> requests.Response:
     """Make a request to the USDA API with proper error handling.
@@ -270,6 +276,7 @@ search_parser.add_argument('sortBy', type=str, help='Field to sort results by', 
 search_parser.add_argument('sortOrder', type=str, help='Sort order for results', location='args',
                           choices=['asc', 'desc'])
 search_parser.add_argument('brandOwner', type=str, help='Filter by brand owner (for branded foods)', location='args')
+
 
 @search_ns.route('/search')
 class FoodSearch(Resource):
