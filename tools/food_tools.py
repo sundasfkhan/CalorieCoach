@@ -534,14 +534,14 @@ if __name__ == "__main__":
         helper = FoodHelper()
 
         #Example 1: Search for foods
-        print("=== Searching for 'chai' ===")
-        search_result = await helper.search_foods("chai")
-        print(json.dumps(search_result, indent=2))
+        # print("=== Searching for 'chai' ===")
+        # search_result = await helper.search_foods("chai")
+        # print(json.dumps(search_result, indent=2))
 
         # Example 2: OpenAI-powered analysis (if API key is available)
         if os.getenv("OPENAI_API_KEY"):
             print("\n=== OpenAI Food Analysis ===")
-            ai_analysis = await helper.food_summary_with_openai(["samosa"])
+            ai_analysis = await helper.food_summary_with_openai(["chai"])
             print(ai_analysis)
 
 
