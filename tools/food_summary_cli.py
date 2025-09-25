@@ -14,16 +14,14 @@ ROOT = Path(__file__).resolve().parents[1]
 MCP_SERVER_PATH = ROOT / "mcp_server//mcp_server.py"
 
 
-async def search_foods_tool(query: str, dataType: str = None, pageSize: int = 50, pageNumber: int = 1) -> str:
+async def search_foods_tool(query: str) -> str:
     """Search for foods in the USDA FoodData Central database"""
     params = StdioServerParameters(command=sys.executable, args=[str(MCP_SERVER_PATH)], env=None)
     async with stdio_client(params) as (read_stream, write_stream):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
 
-            arguments = {"query": query, "pageSize": pageSize, "pageNumber": pageNumber}
-            if dataType:
-                arguments["dataType"] = dataType
+            arguments = {"query": query}
 
             try:
                 result = await session.call_tool(name="search_foods", arguments=arguments)
@@ -72,6 +70,24 @@ async def get_multiple_foods_tool(fdc_ids: list[int], format: str = "full") -> s
                 return json.dumps({"error": str(e)})
 
 
+async def classify_food_tool(image_path: str) -> str:
+    """Classify a food image using the MCP server's classify tool."""
+    params = StdioServerParameters(command=sys.executable, args=[str(MCP_SERVER_PATH)], env=None)
+    async with stdio_client(params) as (read_stream, write_stream):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+            try:
+                result = await session.call_tool(
+                    name="classify",
+                    arguments={"image_path": image_path}
+                )
+                if result.isError or not result.content:
+                    return json.dumps({"error": "Classification failed"})
+                return result.content[0].text
+            except Exception as e:
+                return json.dumps({"error": str(e)})
+
+
 def get_openai_tools():
     """Define OpenAI function tools that map to MCP server tools"""
     return [
@@ -86,24 +102,6 @@ def get_openai_tools():
                         "query": {
                             "type": "string",
                             "description": "Search query for food items"
-                        },
-                        "dataType": {
-                            "type": "string",
-                            "enum": ["Foundation", "SR Legacy", "Survey", "Branded"],
-                            "description": "Filter by data type"
-                        },
-                        "pageSize": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "maximum": 1,
-                            "default": 1,
-                            "description": "Number of results per page"
-                        },
-                        "pageNumber": {
-                            "type": "integer",
-                            "minimum": 1,
-                            "default": 1,
-                            "description": "Page number"
                         }
                     },
                     "required": ["query"]
@@ -171,6 +169,8 @@ async def handle_tool_call(tool_call):
         return await get_food_details_tool(**arguments)
     elif function_name == "get_multiple_foods":
         return await get_multiple_foods_tool(**arguments)
+    elif function_name == "classify":
+        return await classify_food_tool(**arguments)
     else:
         return json.dumps({"error": f"Unknown function: {function_name}"})
 
@@ -266,6 +266,8 @@ def food_summary(argv: list[str]) -> int:
     # Deduplicate while preserving order
     seen = set()
     terms = [t for t in terms if not (t in seen or seen.add(t))]
+
+    print(terms)
 
     if not terms:
         print("Provide food item names via positional args or --input.")

@@ -32,7 +32,7 @@ async def food_summary(label: str) -> Dict[str, Any]:
                 # Search for foods matching the label
                 search_result = await session.call_tool(
                     name="search_foods",
-                    arguments={"query": label, "pageSize": 5, "pageNumber": 1}
+                    arguments={"query": label}
                 )
 
                 if search_result.isError or not search_result.content:

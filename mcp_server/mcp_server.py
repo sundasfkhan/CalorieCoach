@@ -16,10 +16,7 @@ Exposed tools (LLM-callable):
 - search_foods(args): Find foods using USDA FDC search
   Input schema:
     {
-      query: string (required),
-      dataType?: 'Foundation'|'SR Legacy'|'Survey'|'Branded',
-      pageSize?: integer (1..200, default 50),
-      pageNumber?: integer (>=1, default 1)
+      query: string (required)
     }
   Output: list with one TextContent item containing the JSON string result
   Errors: returns a single TextContent with an error message on failure
@@ -38,6 +35,14 @@ Exposed tools (LLM-callable):
     {
       fdc_ids: integer[] (required),
       format?: 'full'|'abridged' (default 'full')
+    }
+  Output: list with one TextContent item containing the JSON string result
+  Errors: returns a single TextContent with an error message on failure
+
+- classify(args): Classify a food image and return the predicted class and confidence score.
+  Input schema:
+    {
+      image_path: string (required): Path to the image file to classify. Must be accessible to the server.
     }
   Output: list with one TextContent item containing the JSON string result
   Errors: returns a single TextContent with an error message on failure
@@ -135,24 +140,6 @@ class FoodDataMCPServer:
                             "query": {
                                 "type": "string",
                                 "description": "Search query for food items"
-                            },
-                            "dataType": {
-                                "type": "string",
-                                "enum": ["Foundation", "SR Legacy", "Survey", "Branded"],
-                                "description": "Filter by data type"
-                            },
-                            "pageSize": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "maximum": 200,
-                                "default": 50,
-                                "description": "Number of results per page"
-                            },
-                            "pageNumber": {
-                                "type": "integer",
-                                "minimum": 1,
-                                "default": 1,
-                                "description": "Page number"
                             }
                         },
                         "required": ["query"]
@@ -198,6 +185,20 @@ class FoodDataMCPServer:
                         },
                         "required": ["fdc_ids"]
                     }
+                ),
+                Tool(
+                    name="classify",
+                    description="Classify a food image and return the predicted class and confidence score.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "image_path": {
+                                "type": "string",
+                                "description": "Path to the image file to classify. Must be accessible to the server."
+                            }
+                        },
+                        "required": ["image_path"]
+                    }
                 )
             ]
 
@@ -226,6 +227,8 @@ class FoodDataMCPServer:
                     return await self._get_food_details(arguments)
                 elif name == "get_multiple_foods":
                     return await self._get_multiple_foods(arguments)
+                elif name == "classify":
+                    return await self._classify(arguments)
                 else:
                     raise ValueError(f"Unknown tool: {name}")
             except Exception as e:
@@ -236,23 +239,15 @@ class FoodDataMCPServer:
 
         Inputs (args):
         - query (str, required)
-        - dataType (str, optional)
-        - pageSize (int, optional)
-        - pageNumber (int, optional)
-        Behavior: GET {FLASK_API_BASE_URL}/api/search
+        Behavior: GET {FLASK_API_BASE_URL}/api/search?food_name=<query>
         Success output: [TextContent(text='<json>')]
         Errors: raises httpx.HTTPError (caught by caller and returned as TextContent)
         Example call:
-        - {"name":"search_foods","arguments":{"query":"apple","pageSize":10}}
+        - {"name":"search_foods","arguments":{"query":"apple"}}
         """
         params = {
-            "query": args["query"],
-            "pageSize": args.get("pageSize", 50),
-            "pageNumber": args.get("pageNumber", 1)
+            "food_name": args["query"]
         }
-
-        if "dataType" in args:
-            params["dataType"] = args["dataType"]
 
         response = await self.client.get(f"{FLASK_API_BASE_URL}/api/search", params=params)
         response.raise_for_status()
@@ -304,6 +299,23 @@ class FoodDataMCPServer:
 
         result = response.json()
         return [TextContent(type="text", text=json.dumps(result))]
+
+    async def _classify(self, args: dict) -> list[TextContent]:
+        """Classify a food image via the Flask API.
+        Inputs (args):
+        - image_path (str, required): Path to the image file accessible to the server.
+        Behavior: POST {FLASK_API_BASE_URL}/api/classify with image file
+        Success output: [TextContent(text='<json>')]
+        Errors: raises httpx.HTTPError (caught by caller and returned as TextContent)
+        """
+        image_path = args["image_path"]
+        # Open the image file and send as multipart/form-data
+        with open(image_path, "rb") as f:
+            files = {"file": (image_path, f, "image/jpeg")}
+            response = await self.client.post(f"{FLASK_API_BASE_URL}/api/classify", files=files)
+            response.raise_for_status()
+            result = response.json()
+            return [TextContent(type="text", text=json.dumps(result))]
 
     async def run(self):
         """Run the MCP server with stdio transport.
