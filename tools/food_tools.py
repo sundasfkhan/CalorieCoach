@@ -541,7 +541,7 @@ if __name__ == "__main__":
         # Example 2: OpenAI-powered analysis (if API key is available)
         if os.getenv("OPENAI_API_KEY"):
             print("\n=== OpenAI Food Analysis ===")
-            ai_analysis = await helper.food_summary_with_openai(["chai"])
+            ai_analysis = await helper.food_summary_with_openai(["dhokla", "cheesecake", "chai"])
             print(ai_analysis)
 
 
