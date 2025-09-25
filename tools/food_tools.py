@@ -66,61 +66,61 @@ class FoodHelper:
         except Exception as e:
             return {"error": str(e), "query": query}
 
-    async def get_food_details(self, fdc_id: int, format: str = "full") -> Dict[str, Any]:
-        """
-        Get detailed information about a specific food item.
-
-        Args:
-            fdc_id: Food Data Central ID
-            format: Response format ('full' or 'abridged')
-
-        Returns:
-            Dictionary containing food details or error information
-        """
-        try:
-            async with await self._get_mcp_session() as (read_stream, write_stream):
-                async with ClientSession(read_stream, write_stream) as session:
-                    await session.initialize()
-
-                    result = await session.call_tool(
-                        name="get_food_details",
-                        arguments={"fdc_id": fdc_id, "format": format}
-                    )
-
-                    if result.isError or not result.content:
-                        return {"error": "Food details fetch failed", "fdc_id": fdc_id}
-
-                    return json.loads(result.content[0].text)
-        except Exception as e:
-            return {"error": str(e), "fdc_id": fdc_id}
-
-    async def get_multiple_foods(self, fdc_ids: List[int], format: str = "full") -> Dict[str, Any]:
-        """
-        Get information about multiple food items.
-
-        Args:
-            fdc_ids: List of Food Data Central IDs
-            format: Response format ('full' or 'abridged')
-
-        Returns:
-            Dictionary containing multiple food details or error information
-        """
-        try:
-            async with await self._get_mcp_session() as (read_stream, write_stream):
-                async with ClientSession(read_stream, write_stream) as session:
-                    await session.initialize()
-
-                    result = await session.call_tool(
-                        name="get_multiple_foods",
-                        arguments={"fdc_ids": fdc_ids, "format": format}
-                    )
-
-                    if result.isError or not result.content:
-                        return {"error": "Multiple foods fetch failed", "fdc_ids": fdc_ids}
-
-                    return json.loads(result.content[0].text)
-        except Exception as e:
-            return {"error": str(e), "fdc_ids": fdc_ids}
+    # async def get_food_details(self, fdc_id: int, format: str = "full") -> Dict[str, Any]:
+    #     """
+    #     Get detailed information about a specific food item.
+    #
+    #     Args:
+    #         fdc_id: Food Data Central ID
+    #         format: Response format ('full' or 'abridged')
+    #
+    #     Returns:
+    #         Dictionary containing food details or error information
+    #     """
+    #     try:
+    #         async with await self._get_mcp_session() as (read_stream, write_stream):
+    #             async with ClientSession(read_stream, write_stream) as session:
+    #                 await session.initialize()
+    #
+    #                 result = await session.call_tool(
+    #                     name="get_food_details",
+    #                     arguments={"fdc_id": fdc_id, "format": format}
+    #                 )
+    #
+    #                 if result.isError or not result.content:
+    #                     return {"error": "Food details fetch failed", "fdc_id": fdc_id}
+    #
+    #                 return json.loads(result.content[0].text)
+    #     except Exception as e:
+    #         return {"error": str(e), "fdc_id": fdc_id}
+    #
+    # async def get_multiple_foods(self, fdc_ids: List[int], format: str = "full") -> Dict[str, Any]:
+    #     """
+    #     Get information about multiple food items.
+    #
+    #     Args:
+    #         fdc_ids: List of Food Data Central IDs
+    #         format: Response format ('full' or 'abridged')
+    #
+    #     Returns:
+    #         Dictionary containing multiple food details or error information
+    #     """
+    #     try:
+    #         async with await self._get_mcp_session() as (read_stream, write_stream):
+    #             async with ClientSession(read_stream, write_stream) as session:
+    #                 await session.initialize()
+    #
+    #                 result = await session.call_tool(
+    #                     name="get_multiple_foods",
+    #                     arguments={"fdc_ids": fdc_ids, "format": format}
+    #                 )
+    #
+    #                 if result.isError or not result.content:
+    #                     return {"error": "Multiple foods fetch failed", "fdc_ids": fdc_ids}
+    #
+    #                 return json.loads(result.content[0].text)
+    #     except Exception as e:
+    #         return {"error": str(e), "fdc_ids": fdc_ids}
 
     async def classify_food(self, image_path: str) -> Dict[str, Any]:
         """
@@ -169,53 +169,53 @@ class FoodHelper:
                     }
                 }
             },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_food_details",
-                    "description": "Get detailed information about a specific food item",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "fdc_id": {
-                                "type": "integer",
-                                "description": "Food Data Central ID"
-                            },
-                            "format": {
-                                "type": "string",
-                                "enum": ["full", "abridged"],
-                                "default": "full",
-                                "description": "Response format"
-                            }
-                        },
-                        "required": ["fdc_id"]
-                    }
-                }
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "get_multiple_foods",
-                    "description": "Get information about multiple food items",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "fdc_ids": {
-                                "type": "array",
-                                "items": {"type": "integer"},
-                                "description": "List of Food Data Central IDs"
-                            },
-                            "format": {
-                                "type": "string",
-                                "enum": ["full", "abridged"],
-                                "default": "full",
-                                "description": "Response format"
-                            }
-                        },
-                        "required": ["fdc_ids"]
-                    }
-                }
-            },
+            # {
+            #     "type": "function",
+            #     "function": {
+            #         "name": "get_food_details",
+            #         "description": "Get detailed information about a specific food item",
+            #         "parameters": {
+            #             "type": "object",
+            #             "properties": {
+            #                 "fdc_id": {
+            #                     "type": "integer",
+            #                     "description": "Food Data Central ID"
+            #                 },
+            #                 "format": {
+            #                     "type": "string",
+            #                     "enum": ["full", "abridged"],
+            #                     "default": "full",
+            #                     "description": "Response format"
+            #                 }
+            #             },
+            #             "required": ["fdc_id"]
+            #         }
+            #     }
+            # },
+            # {
+            #     "type": "function",
+            #     "function": {
+            #         "name": "get_multiple_foods",
+            #         "description": "Get information about multiple food items",
+            #         "parameters": {
+            #             "type": "object",
+            #             "properties": {
+            #                 "fdc_ids": {
+            #                     "type": "array",
+            #                     "items": {"type": "integer"},
+            #                     "description": "List of Food Data Central IDs"
+            #                 },
+            #                 "format": {
+            #                     "type": "string",
+            #                     "enum": ["full", "abridged"],
+            #                     "default": "full",
+            #                     "description": "Response format"
+            #                 }
+            #             },
+            #             "required": ["fdc_ids"]
+            #         }
+            #     }
+            # },
             {
                 "type": "function",
                 "function": {
@@ -242,10 +242,10 @@ class FoodHelper:
 
         if function_name == "search_foods":
             result = await self.search_foods(**arguments)
-        elif function_name == "get_food_details":
-            result = await self.get_food_details(**arguments)
-        elif function_name == "get_multiple_foods":
-            result = await self.get_multiple_foods(**arguments)
+        # elif function_name == "get_food_details":
+        #     result = await self.get_food_details(**arguments)
+        # elif function_name == "get_multiple_foods":
+        #     result = await self.get_multiple_foods(**arguments)
         elif function_name == "classify_food":
             result = await self.classify_food(**arguments)
         else:
@@ -484,16 +484,16 @@ async def search_foods(query: str) -> Dict[str, Any]:
     return await helper.search_foods(query)
 
 
-async def get_food_details(fdc_id: int, format: str = "full") -> Dict[str, Any]:
-    """Get detailed information about a specific food item."""
-    helper = FoodHelper()
-    return await helper.get_food_details(fdc_id, format)
-
-
-async def get_multiple_foods(fdc_ids: List[int], format: str = "full") -> Dict[str, Any]:
-    """Get information about multiple food items."""
-    helper = FoodHelper()
-    return await helper.get_multiple_foods(fdc_ids, format)
+# async def get_food_details(fdc_id: int, format: str = "full") -> Dict[str, Any]:
+#     """Get detailed information about a specific food item."""
+#     helper = FoodHelper()
+#     return await helper.get_food_details(fdc_id, format)
+#
+#
+# async def get_multiple_foods(fdc_ids: List[int], format: str = "full") -> Dict[str, Any]:
+#     """Get information about multiple food items."""
+#     helper = FoodHelper()
+#     return await helper.get_multiple_foods(fdc_ids, format)
 
 
 async def classify_food(image_path: str) -> Dict[str, Any]:
@@ -533,26 +533,17 @@ if __name__ == "__main__":
         # Initialize helper
         helper = FoodHelper()
 
-        # Example 1: Search for foods
-        print("=== Searching for 'samosa' ===")
-        search_result = await helper.search_foods("samosa")
+        #Example 1: Search for foods
+        print("=== Searching for 'chai' ===")
+        search_result = await helper.search_foods("chai")
         print(json.dumps(search_result, indent=2))
 
-        # Example 2: Basic food summary
-        print("\n=== Basic Food Summary for 'pizza' ===")
-        basic_summary = await helper.food_summary_basic("pizza")
-        print(json.dumps(basic_summary, indent=2))
-
-        # Example 3: OpenAI-powered analysis (if API key is available)
+        # Example 2: OpenAI-powered analysis (if API key is available)
         if os.getenv("OPENAI_API_KEY"):
             print("\n=== OpenAI Food Analysis ===")
-            ai_analysis = await helper.food_summary_with_openai(["samosa", "pizza"])
+            ai_analysis = await helper.food_summary_with_openai(["samosa"])
             print(ai_analysis)
 
-        # Example 4: Batch analysis
-        print("\n=== Batch Analysis (Basic) ===")
-        batch_result = await helper.batch_food_analysis(["samosa", "pizza"], use_openai=False)
-        print(json.dumps(batch_result, indent=2))
 
         # food_name = await helper.classify_food(".\\..\\data\Test\\cheesecake\\cheesecake-1314.jpg")
         # print(food_name)         # Run the example
