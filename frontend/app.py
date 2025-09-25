@@ -45,7 +45,7 @@ if __name__ == '__main__':
             return None
 
     def display_nutrition_table(food_data):
-        """Display nutrition data in a formatted table."""
+        """Display nutrition data and ingredients in a formatted table."""
         if not food_data or not food_data.get('foods'):
             st.warning("No nutrition data available for this food item.")
             return
@@ -58,10 +58,23 @@ if __name__ == '__main__':
         st.write(f"**Brand:** {food_item.get('brandName', 'N/A')}")
         st.write(f"**Serving Size:** {food_item.get('servingSize', 'N/A')} {food_item.get('servingSizeUnit', '').lower()}")
 
+        # Display ingredients if available
+        ingredients = food_item.get('ingredients', '')
+        if ingredients:
+            st.subheader("🥄 Ingredients")
+            # Format ingredients for better readability
+            formatted_ingredients = ingredients.replace(',', ',\n• ').strip()
+            if formatted_ingredients:
+                st.write("• " + formatted_ingredients)
+        else:
+            st.subheader("🥄 Ingredients")
+            st.write("No ingredients information available for this food item.")
+
         # Extract and format nutrition data
         nutrients = food_item.get('foodNutrients', [])
 
         if nutrients:
+            st.subheader("📋 Detailed Nutrition Facts")
             # Create a list to store nutrition data
             nutrition_data = []
 
