@@ -4,6 +4,7 @@ import httpx
 from mcp.server.models import InitializationOptions
 from mcp.server import NotificationOptions, Server
 from mcp.types import Resource, Tool, TextContent
+from mpmath.libmp import BACKEND
 from pydantic import AnyUrl
 import mcp.types as types
 
@@ -54,7 +55,7 @@ General behavior:
 """
 
 # Configuration
-FLASK_API_BASE_URL = "http://localhost:8004"
+BACKEND_URL = "http://localhost:8004"
 
 
 class FoodDataMCPServer:
@@ -145,47 +146,47 @@ class FoodDataMCPServer:
                         "required": ["query"]
                     }
                 ),
-                Tool(
-                    name="get_food_details",
-                    description="Get detailed information about a specific food item",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "fdc_id": {
-                                "type": "integer",
-                                "description": "Food Data Central ID"
-                            },
-                            "format": {
-                                "type": "string",
-                                "enum": ["full", "abridged"],
-                                "default": "full",
-                                "description": "Response format"
-                            }
-                        },
-                        "required": ["fdc_id"]
-                    }
-                ),
-                Tool(
-                    name="get_multiple_foods",
-                    description="Get information about multiple food items",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "fdc_ids": {
-                                "type": "array",
-                                "items": {"type": "integer"},
-                                "description": "List of Food Data Central IDs"
-                            },
-                            "format": {
-                                "type": "string",
-                                "enum": ["full", "abridged"],
-                                "default": "full",
-                                "description": "Response format"
-                            }
-                        },
-                        "required": ["fdc_ids"]
-                    }
-                ),
+                # Tool(
+                #     name="get_food_details",
+                #     description="Get detailed information about a specific food item",
+                #     inputSchema={
+                #         "type": "object",
+                #         "properties": {
+                #             "fdc_id": {
+                #                 "type": "integer",
+                #                 "description": "Food Data Central ID"
+                #             },
+                #             "format": {
+                #                 "type": "string",
+                #                 "enum": ["full", "abridged"],
+                #                 "default": "full",
+                #                 "description": "Response format"
+                #             }
+                #         },
+                #         "required": ["fdc_id"]
+                #     }
+                # ),
+                # Tool(
+                #     name="get_multiple_foods",
+                #     description="Get information about multiple food items",
+                #     inputSchema={
+                #         "type": "object",
+                #         "properties": {
+                #             "fdc_ids": {
+                #                 "type": "array",
+                #                 "items": {"type": "integer"},
+                #                 "description": "List of Food Data Central IDs"
+                #             },
+                #             "format": {
+                #                 "type": "string",
+                #                 "enum": ["full", "abridged"],
+                #                 "default": "full",
+                #                 "description": "Response format"
+                #             }
+                #         },
+                #         "required": ["fdc_ids"]
+                #     }
+                # ),
                 Tool(
                     name="classify",
                     description="Classify a food image and return the predicted class and confidence score.",
@@ -249,7 +250,7 @@ class FoodDataMCPServer:
             "food_name": args["query"]
         }
 
-        response = await self.client.get(f"{FLASK_API_BASE_URL}/api/search", params=params)
+        response = await self.client.get(f"{BACKEND_URL}/api/search", params=params)
         response.raise_for_status()
 
         result = response.json()
@@ -270,7 +271,7 @@ class FoodDataMCPServer:
         fdc_id = args["fdc_id"]
         params = {"format": args.get("format", "full")}
 
-        response = await self.client.get(f"{FLASK_API_BASE_URL}/api/food/{fdc_id}", params=params)
+        response = await self.client.get(f"{BACKEND_URL}/api/food/{fdc_id}", params=params)
         response.raise_for_status()
 
         result = response.json()
@@ -294,7 +295,7 @@ class FoodDataMCPServer:
             "format": args.get("format", "full")
         }
 
-        response = await self.client.get(f"{FLASK_API_BASE_URL}/api/foods", params=params)
+        response = await self.client.get(f"{BACKEND_URL}/api/foods", params=params)
         response.raise_for_status()
 
         result = response.json()
@@ -312,7 +313,7 @@ class FoodDataMCPServer:
         # Open the image file and send as multipart/form-data
         with open(image_path, "rb") as f:
             files = {"file": (image_path, f, "image/jpeg")}
-            response = await self.client.post(f"{FLASK_API_BASE_URL}/api/classify", files=files)
+            response = await self.client.post(f"{BACKEND_URL}/api/classify", files=files)
             response.raise_for_status()
             result = response.json()
             return [TextContent(type="text", text=json.dumps(result))]

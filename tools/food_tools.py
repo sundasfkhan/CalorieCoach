@@ -554,5 +554,7 @@ if __name__ == "__main__":
         batch_result = await helper.batch_food_analysis(["samosa", "pizza"], use_openai=False)
         print(json.dumps(batch_result, indent=2))
 
-    # Run the example
+        # food_name = await helper.classify_food(".\\..\\data\Test\\cheesecake\\cheesecake-1314.jpg")
+        # print(food_name)         # Run the example
+
     asyncio.run(example_usage())

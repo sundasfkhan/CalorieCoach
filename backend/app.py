@@ -27,7 +27,7 @@ from pydantic import BaseModel
 project_root = Path(__file__).resolve().parent.parent
 sys.path.append(str(project_root))
 
-from tools.food_summary import food_summary
+
 
 # Load environment variables
 load_dotenv()

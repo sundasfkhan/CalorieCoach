@@ -293,6 +293,8 @@ To test the MCP server functionality, use the Model Context Protocol inspector:
 ```bash
 npx @modelcontextprotocol/inspector python mcp_server/mcp_server.py
 ```
+file path for classify tool is mcp_server/mcp_server.py : **.\data\Test\cheesecake\cheesecake-1291.jpg**
+
 
 This will launch an interactive inspector where you can:
 - **Test MCP Tools**: search_foods, get_food_details, get_multiple_foods, classify
