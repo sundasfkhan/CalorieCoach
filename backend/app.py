@@ -238,23 +238,6 @@ async def classify_food_image(
         logger.error(f"Classification error: {e}")
         raise HTTPException(status_code=500, detail=f"Classification failed: {str(e)}")
 
-@app.get("/api/classify-with-nutrition/{food_class}", tags=["Food Classification"])
-async def get_nutrition_info(food_class: str):
-    """
-    Get nutrition information for a classified food item.
-
-    Takes a food class name and returns nutritional data.
-    """
-    try:
-        nutrition_data = food_summary(food_class)
-        return {
-            "food_class": food_class,
-            "nutrition_data": nutrition_data,
-            "success": True
-        }
-    except Exception as e:
-        logger.error(f"Nutrition lookup error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to get nutrition data")
 
 if __name__ == "__main__":
     import uvicorn
@@ -268,4 +251,4 @@ if __name__ == "__main__":
     print('  GET /docs - Interactive API documentation')
     print('  GET /openapi.json - OpenAPI specification')
 
-    uvicorn.run("app_fastapi:app", host="0.0.0.0", port=PORT, reload=True)
+    uvicorn.run("app:app", host="127.0.0.1", port=PORT, reload=True)
