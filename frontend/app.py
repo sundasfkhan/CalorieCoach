@@ -44,24 +44,32 @@ class NutritionDisplay:
 
         for line in lines:
             line = line.strip()
-            if not line or line.startswith('**') and line.endswith('**') and ':' not in line:
+
+            # Skip empty lines
+            if not line:
                 continue
 
             # Parse title
             if line.startswith('**Title**:'):
                 result['title'] = line.replace('**Title**:', '').strip()
+                current_section = None
 
             # Parse serving size
             elif line.startswith('**Serving Size**:'):
                 result['serving_size'] = line.replace('**Serving Size**:', '').strip()
+                current_section = None
 
             # Parse key nutrients section
             elif line.startswith('**Key Nutrients**:'):
                 current_section = 'nutrients'
 
-            # Parse ingredients section
+            # Parse ingredients section header
             elif line.startswith('**Ingredients**:'):
                 current_section = 'ingredients'
+                # Check if ingredients are on the same line
+                ingredients_on_same_line = line.replace('**Ingredients**:', '').strip()
+                if ingredients_on_same_line:
+                    result['ingredients'] = ingredients_on_same_line
 
             # Parse nutrient values
             elif current_section == 'nutrients' and line.startswith('-'):
@@ -71,8 +79,8 @@ class NutritionDisplay:
                     name, value = nutrient_line.split(':', 1)
                     result['nutrients'][name.strip()] = value.strip()
 
-            # Parse ingredients text
-            elif current_section == 'ingredients' and line:
+            # Parse ingredients text (if on separate lines)
+            elif current_section == 'ingredients' and not line.startswith('**'):
                 if result['ingredients']:
                     result['ingredients'] += ' ' + line
                 else:
