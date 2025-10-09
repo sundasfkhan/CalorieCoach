@@ -14,14 +14,13 @@ async def main() -> None:
     mcp_server_prxy = StdioServerParams(command="python", args=[".././mcp_server/mcp_server.py"])
     tools = await mcp_server_tools(mcp_server_prxy)
     print("MCP Server tools loaded")
-    print(tools)
     # Create an agent that can use the fetch tool.
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
-    agent = AssistantAgent(name="nutritionist" , system_message="You are a helpful food Nutritionist assistant. Please search for foods details in the USDA FoodData Central database" , model_client=model_client, tools=tools,
+    agent = AssistantAgent(name="nutritionist" , system_message="You are a helpful food Nutritionist assistant. Please call the tool 'search_foods' when user is asking about any food. Tool 'search_foods' then search the foods details in the USDA FoodData Central database" , model_client=model_client, tools=tools,
                            reflect_on_tool_use=True)  # type: ignore
 
     # Let the agent fetch the content of a URL and summarize it.
-    result = await agent.run(task="tell me about samosa" , cancellation_token=CancellationToken())
+    result = await agent.run(task="tell me about food: samosa" , cancellation_token=CancellationToken())
     print(result.messages[-1])
 
 
