@@ -108,13 +108,16 @@ class NutritionDisplay:
             ingredients = parsed_data.get('ingredients', '').strip()
 
             if ingredients:
-                # Split by periods or commas to create a better formatted list
-                if '.' in ingredients:
-                    ingredients_parts = ingredients.split('.')
+                # Split by commas for comma-separated ingredients
+                if ',' in ingredients:
+                    ingredients_parts = [part.strip() for part in ingredients.split(',') if part.strip()]
+                # Fallback to periods if no commas
+                elif '.' in ingredients:
+                    ingredients_parts = [part.strip() for part in ingredients.split('.') if part.strip()]
                 else:
                     ingredients_parts = [ingredients]
 
-                formatted_ingredients = '<br>'.join([f"• {part.strip()}" for part in ingredients_parts if part.strip()])
+                formatted_ingredients = '<br>'.join([f"• {part}" for part in ingredients_parts])
 
                 st.markdown(f"""
                 <div class="ingredient-card">
