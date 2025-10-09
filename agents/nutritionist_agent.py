@@ -16,12 +16,22 @@ async def main() -> None:
     print("MCP Server tools loaded")
     # Create an agent that can use the fetch tool.
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
-    agent = AssistantAgent(name="nutritionist" , system_message="You are a helpful food Nutritionist assistant. Please call the tool 'search_foods' when user is asking about any food. Tool 'search_foods' then search the foods details in the USDA FoodData Central database" , model_client=model_client, tools=tools,
-                           reflect_on_tool_use=True)  # type: ignore
+
+    agent = AssistantAgent(
+        name="nutritionist",
+        system_message=(
+            "You are an expert nutritionist assistant. Your primary function is to use the 'mcp_server_tool' to answer user questions. "
+            "You MUST call the 'mcp_server_tool' whenever a user asks about food information, nutritional values, meal plans, or recipes. "
+            "Do not answer from your own knowledge base. Rely exclusively on the tool's output for your response."
+        ),
+        model_client=model_client,
+        tools=tools,  # Make sure 'mcp_server_tool' is correctly defined in this list
+        reflect_on_tool_use=True
+    )
 
     # Let the agent fetch the content of a URL and summarize it.
     result = await agent.run(task="tell me about food: samosa" , cancellation_token=CancellationToken())
-    print(result.messages[-1])
+    print(result.messages[-1].content)
 
 
 
