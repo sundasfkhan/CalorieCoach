@@ -1020,12 +1020,6 @@ class UIComponents:
     def render_upload_section():
         """Render the file upload section."""
         with st.container():
-            st.markdown("""
-            <div class="upload-area">
-                <div class="category-header" style="justify-content: center;"><span>📸</span> Upload Your Food Image</div>
-            </div>
-            """, unsafe_allow_html=True)
-
             return st.file_uploader(
                 "Choose an image file",
                 type=["jpg", "jpeg", "png"],
@@ -1453,12 +1447,6 @@ class UIComponents:
     def render_upload_section():
         """Render the file upload section."""
         with st.container():
-            st.markdown("""
-            <div class="upload-area">
-                <div class="category-header" style="justify-content: center;"><span>📸</span> Upload Your Food Image</div>
-            </div>
-            """, unsafe_allow_html=True)
-
             return st.file_uploader(
                 "Choose an image file",
                 type=["jpg", "jpeg", "png"],
@@ -1482,7 +1470,7 @@ class UIComponents:
     def render_welcome_screen():
         """Render the welcome screen with instructions."""
         with st.container():
-            
+
             st.markdown('<div class="category-header"><span>💡</span> How to Use</div>', unsafe_allow_html=True)
 
             cols = st.columns(3)
@@ -1506,7 +1494,7 @@ class UIComponents:
 
         # Sample foods section
         with st.container():
-            
+
             st.markdown('<div class="category-header"><span>🍎</span> Supported Foods</div>', unsafe_allow_html=True)
 
             col1, col2 = st.columns(2)
@@ -2194,7 +2182,7 @@ if __name__ == '__main__':
             
             st.markdown('<div class="category-header"><span>🖼️</span> Your Image</div>', unsafe_allow_html=True)
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Food Image", use_column_width=True)
+            st.image(image, caption="Uploaded Food Image", use_container_width=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
         # Display AI analysis
