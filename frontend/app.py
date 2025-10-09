@@ -25,359 +25,643 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS for modern green and blue UI
+# Custom CSS for modern glassmorphism UI with dark mode
 st.markdown("""
 <style>
-    /* Modern green and blue theme */
+    /* Modern Dark Theme with Glassmorphism */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+    
     .stApp {
-        background: linear-gradient(135deg, #e8f5e8 0%, #e3f2fd 100%);
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        background-attachment: fixed;
     }
     
     .main > div {
-        padding: 0.5rem;
-        max-width: 1200px;
+        padding: 1rem;
+        max-width: 1400px;
         margin: 0 auto;
     }
     
-    /* Header styles */
+    /* Animated gradient background */
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Glass Card Effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Header with gradient text */
     .app-header {
         text-align: center;
-        padding: 1.5rem 0;
-        margin-bottom: 1.5rem;
-        background: linear-gradient(135deg, #2e7d32, #1976d2);
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        padding: 3rem 1rem 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .app-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent,
+            rgba(255, 255, 255, 0.05),
+            transparent
+        );
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(50%); }
     }
     
     .app-title {
-        color: white;
-        font-size: 2rem;
+        font-size: 3.5rem;
         font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         margin: 0;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        letter-spacing: -1px;
+        text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3)); }
+        to { filter: drop-shadow(0 0 20px rgba(118, 75, 162, 0.5)); }
     }
     
     .app-subtitle {
-        color: rgba(255,255,255,0.9);
-        font-size: 1rem;
-        margin-top: 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.2rem;
+        margin-top: 0.8rem;
+        font-weight: 300;
+        letter-spacing: 1px;
     }
     
-    /* Card styles with green/blue theme */
-    .modern-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border: 1px solid rgba(46, 125, 50, 0.1);
-        transition: all 0.3s ease;
+    .app-emoji {
+        font-size: 4rem;
+        display: inline-block;
+        animation: float 3s ease-in-out infinite;
+        margin-bottom: 1rem;
     }
     
-    .modern-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(25, 118, 210, 0.15);
-        border-color: rgba(25, 118, 210, 0.2);
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
     }
     
-    /* Category headers */
+    /* Category headers with icons */
     .category-header {
-        color: #2e7d32;
-        font-size: 1.1rem;
+        color: #fff;
+        font-size: 1.4rem;
         font-weight: 600;
-        margin: 0 0 1rem 0;
+        margin: 0 0 1.5rem 0;
         display: flex;
         align-items: center;
-        border-bottom: 2px solid #e8f5e8;
-        padding-bottom: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        position: relative;
+    }
+    
+    .category-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 80px;
+        height: 2px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 2px;
     }
     
     .category-header span {
-        margin-right: 0.5rem;
-        font-size: 1.2rem;
+        margin-right: 0.8rem;
+        font-size: 1.6rem;
+        animation: bounce 2s infinite;
     }
     
-    /* Prediction result card */
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    /* Prediction result with animated gradient */
     .result-card {
-        background: linear-gradient(135deg, #4caf50, #2196f3);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 3s ease infinite;
         color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
+        border-radius: 24px;
+        padding: 2.5rem;
         text-align: center;
-        margin: 1rem 0;
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        margin: 2rem 0;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 10s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
     
     .result-card h3 {
         margin: 0;
-        font-size: 1rem;
-        font-weight: 500;
+        font-size: 1.1rem;
+        font-weight: 400;
         color: rgba(255,255,255,0.9);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 1;
     }
     
     .result-card h2 {
-        margin: 0.5rem 0;
-        font-size: 1.6rem;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 1rem 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        position: relative;
+        z-index: 1;
     }
     
     .result-card p {
         margin: 0;
-        font-size: 1rem;
+        font-size: 1.2rem;
         opacity: 0.95;
+        position: relative;
+        z-index: 1;
     }
     
-    /* Info cards */
+    /* Info cards with glass effect */
     .info-card {
-        background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
-        border-radius: 10px;
-        padding: 1.2rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #4caf50;
+        background: rgba(103, 126, 234, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.8rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(103, 126, 234, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        background: rgba(103, 126, 234, 0.15);
+        border-color: rgba(103, 126, 234, 0.4);
+        transform: translateX(5px);
     }
     
     /* Ingredient card */
     .ingredient-card {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-        border-radius: 10px;
-        padding: 1.2rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #2196f3;
+        background: rgba(118, 75, 162, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.8rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(118, 75, 162, 0.2);
+        transition: all 0.3s ease;
     }
     
-    /* Nutrient badges with green/blue theme */
+    .ingredient-card:hover {
+        background: rgba(118, 75, 162, 0.15);
+        border-color: rgba(118, 75, 162, 0.4);
+        transform: translateX(5px);
+    }
+    
+    /* Nutrient badges with neon glow */
     .nutrient-badge {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
         text-align: center;
-        margin: 0.4rem;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin: 0.5rem;
+        border: 2px solid;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nutrient-badge::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s, height 0.4s;
+    }
+    
+    .nutrient-badge:hover::before {
+        width: 200%;
+        height: 200%;
     }
     
     .nutrient-badge:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transform: translateY(-8px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
     
     .nutrient-badge h4 {
-        margin: 0;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #666;
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
     }
     
     .nutrient-badge p {
-        margin: 0.3rem 0 0 0;
-        font-size: 1.2rem;
+        margin: 0;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: #333;
+        position: relative;
+        z-index: 1;
     }
     
     .nutrient-badge.calories {
-        border-color: #ff7043;
-        background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     }
     
     .nutrient-badge.protein {
-        border-color: #42a5f5;
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border-color: #4ecdc4;
+        color: #4ecdc4;
+        box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
     }
     
     .nutrient-badge.fat {
-        border-color: #ffa726;
-        background: linear-gradient(135deg, #fff8e1, #ffecb3);
+        border-color: #ffe66d;
+        color: #ffe66d;
+        box-shadow: 0 4px 15px rgba(255, 230, 109, 0.3);
     }
     
     .nutrient-badge.carbs {
-        border-color: #66bb6a;
-        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border-color: #95e1d3;
+        color: #95e1d3;
+        box-shadow: 0 4px 15px rgba(149, 225, 211, 0.3);
     }
     
     .nutrient-badge.fiber {
-        border-color: #ab47bc;
-        background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        border-color: #c7b3f5;
+        color: #c7b3f5;
+        box-shadow: 0 4px 15px rgba(199, 179, 245, 0.3);
     }
     
     .nutrient-badge.sugar {
-        border-color: #ec407a;
-        background: linear-gradient(135deg, #fce4ec, #f8bbd9);
+        border-color: #ff9ff3;
+        color: #ff9ff3;
+        box-shadow: 0 4px 15px rgba(255, 159, 243, 0.3);
     }
     
-    /* Upload area */
+    /* Upload area with animated border */
     .upload-area {
-        background: linear-gradient(135deg, #e8f5e8, #e3f2fd);
-        border: 2px dashed #4caf50;
-        border-radius: 12px;
-        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 3px dashed rgba(102, 126, 234, 0.4);
+        border-radius: 20px;
+        padding: 3rem 2rem;
         text-align: center;
-        margin: 1.5rem 0;
+        margin: 2rem 0;
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .upload-area::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+        background-size: 300% 300%;
+        border-radius: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+        animation: gradientRotate 4s ease infinite;
+    }
+    
+    @keyframes gradientRotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .upload-area:hover::before {
+        opacity: 1;
     }
     
     .upload-area:hover {
-        border-color: #2196f3;
-        background: linear-gradient(135deg, #e3f2fd, #e8f5e8);
+        border-color: transparent;
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.02);
     }
     
     /* Progress bar */
     .stProgress > div > div {
-        background: linear-gradient(90deg, #4caf50, #2196f3);
-        border-radius: 6px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
     }
     
-    /* Image styling */
+    /* Image styling with frame effect */
     .stImage > img {
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid rgba(76, 175, 80, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
     }
     
-    /* Button styling */
+    .stImage > img:hover {
+        transform: scale(1.02);
+        border-color: rgba(102, 126, 234, 0.6);
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Button styling with glow effect */
     .stButton > button {
-        background: linear-gradient(135deg, #4caf50, #2196f3);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         color: white;
         font-weight: 600;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
+        border-radius: 12px;
+        padding: 0.8rem 2rem;
         transition: all 0.3s ease;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .stButton > button:hover::before {
+        width: 300px;
+        height: 300px;
     }
     
     .stButton > button:hover {
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
-        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        transform: translateY(-3px);
     }
     
     /* File uploader styling */
     .stFileUploader > div {
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
     }
     
     /* Data tables */
     .stDataFrame {
-        font-size: 0.9rem;
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
-    }
-    
-    /* Divider */
-    .modern-divider {
-        height: 2px;
-        background: linear-gradient(90deg, #4caf50, #2196f3);
-        margin: 2rem 0;
-        width: 100%;
-        border-radius: 1px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
     }
     
     /* Text styling */
     .food-title {
-        font-size: 1.3rem;
+        font-size: 1.8rem;
         font-weight: 700;
-        color: #2e7d32;
-        margin: 0 0 0.8rem 0;
+        color: #fff;
+        margin: 0 0 1rem 0;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
     .food-info {
-        font-size: 0.95rem;
-        color: #555;
-        margin: 0.4rem 0;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0.6rem 0;
         display: flex;
         align-items: center;
     }
     
     .food-info strong {
         font-weight: 600;
-        margin-right: 0.5rem;
-        color: #1976d2;
+        margin-right: 0.8rem;
+        color: #667eea;
+        min-width: 120px;
     }
     
     .ingredient-list {
-        font-size: 0.9rem;
-        line-height: 1.6;
-        color: #444;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.85);
     }
     
     /* Expander styling */
     .streamlit-expanderHeader {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
-        color: #2e7d32;
-        background: rgba(232, 245, 232, 0.5);
-        border-radius: 8px;
+        color: #fff;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
     }
     
-    /* Instructions styling */
+    .streamlit-expanderHeader:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Instructions cards with hover effects */
     .instruction-item {
         text-align: center;
-        padding: 1rem;
-        background: linear-gradient(135deg, rgba(232, 245, 232, 0.3), rgba(227, 242, 253, 0.3));
-        border-radius: 8px;
-        margin: 0.5rem;
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        margin: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .instruction-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .instruction-item:hover::before {
+        left: 100%;
+    }
+    
+    .instruction-item:hover {
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.4);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
     }
     
     .instruction-title {
-        color: #2e7d32;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 0.8rem;
+        font-size: 1.3rem;
         font-weight: 600;
     }
     
     .instruction-desc {
-        color: #666;
-        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
         margin: 0;
+        line-height: 1.6;
     }
     
     /* Supported foods styling */
     .food-list {
-        color: #555;
-        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
         margin: 0;
         padding-left: 1.5rem;
-        line-height: 1.6;
+        line-height: 2;
     }
     
     .food-list li {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .food-list li:hover {
+        color: #667eea;
+        transform: translateX(5px);
     }
     
     .food-list strong {
-        color: #2e7d32;
+        color: #764ba2;
+        font-weight: 600;
+    }
+    
+    /* Warning/Info messages */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Spinner customization */
+    .stSpinner > div {
+        border-top-color: #667eea !important;
     }
     
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .app-title {
-            font-size: 1.6rem;
+            font-size: 2.5rem;
         }
         
-        .modern-card {
-            padding: 1rem;
-            margin: 0.7rem 0;
+        .app-emoji {
+            font-size: 3rem;
+        }
+        
+        .glass-card {
+            padding: 1.5rem;
+            margin: 1rem 0;
         }
         
         .result-card h2 {
-            font-size: 1.4rem;
+            font-size: 2rem;
         }
         
         .nutrient-badge {
-            padding: 0.8rem;
-            margin: 0.2rem;
+            padding: 1.2rem 0.8rem;
+            margin: 0.3rem;
+        }
+        
+        .instruction-item {
+            padding: 1.5rem 1rem;
         }
     }
-
-    /* Background and text color change */
-    .stApp {
-        background-color: black;
-        color: white;
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2, #f093fb);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -1248,359 +1532,643 @@ class UIComponents:
             st.markdown('</div>', unsafe_allow_html=True)
 
 
-# Custom CSS for modern green and blue UI
+# Custom CSS for modern glassmorphism UI with dark mode
 st.markdown("""
 <style>
-    /* Modern green and blue theme */
+    /* Modern Dark Theme with Glassmorphism */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+    
     .stApp {
-        background: linear-gradient(135deg, #e8f5e8 0%, #e3f2fd 100%);
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+        background-attachment: fixed;
     }
     
     .main > div {
-        padding: 0.5rem;
-        max-width: 1200px;
+        padding: 1rem;
+        max-width: 1400px;
         margin: 0 auto;
     }
     
-    /* Header styles */
+    /* Animated gradient background */
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Glass Card Effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .glass-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Header with gradient text */
     .app-header {
         text-align: center;
-        padding: 1.5rem 0;
-        margin-bottom: 1.5rem;
-        background: linear-gradient(135deg, #2e7d32, #1976d2);
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        padding: 3rem 1rem 2rem;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .app-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 300%;
+        height: 100%;
+        background: linear-gradient(90deg, 
+            transparent,
+            rgba(255, 255, 255, 0.05),
+            transparent
+        );
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(50%); }
     }
     
     .app-title {
-        color: white;
-        font-size: 2rem;
+        font-size: 3.5rem;
         font-weight: 700;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         margin: 0;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        letter-spacing: -1px;
+        text-shadow: 0 0 30px rgba(102, 126, 234, 0.3);
+        animation: titleGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes titleGlow {
+        from { filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.3)); }
+        to { filter: drop-shadow(0 0 20px rgba(118, 75, 162, 0.5)); }
     }
     
     .app-subtitle {
-        color: rgba(255,255,255,0.9);
-        font-size: 1rem;
-        margin-top: 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1.2rem;
+        margin-top: 0.8rem;
+        font-weight: 300;
+        letter-spacing: 1px;
     }
     
-    /* Card styles with green/blue theme */
-    .modern-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        border: 1px solid rgba(46, 125, 50, 0.1);
-        transition: all 0.3s ease;
+    .app-emoji {
+        font-size: 4rem;
+        display: inline-block;
+        animation: float 3s ease-in-out infinite;
+        margin-bottom: 1rem;
     }
     
-    .modern-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(25, 118, 210, 0.15);
-        border-color: rgba(25, 118, 210, 0.2);
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
     }
     
-    /* Category headers */
+    /* Category headers with icons */
     .category-header {
-        color: #2e7d32;
-        font-size: 1.1rem;
+        color: #fff;
+        font-size: 1.4rem;
         font-weight: 600;
-        margin: 0 0 1rem 0;
+        margin: 0 0 1.5rem 0;
         display: flex;
         align-items: center;
-        border-bottom: 2px solid #e8f5e8;
-        padding-bottom: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        position: relative;
+    }
+    
+    .category-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 80px;
+        height: 2px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 2px;
     }
     
     .category-header span {
-        margin-right: 0.5rem;
-        font-size: 1.2rem;
+        margin-right: 0.8rem;
+        font-size: 1.6rem;
+        animation: bounce 2s infinite;
     }
     
-    /* Prediction result card */
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    /* Prediction result with animated gradient */
     .result-card {
-        background: linear-gradient(135deg, #4caf50, #2196f3);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background-size: 200% 200%;
+        animation: gradientShift 3s ease infinite;
         color: white;
-        border-radius: 12px;
-        padding: 1.5rem;
+        border-radius: 24px;
+        padding: 2.5rem;
         text-align: center;
-        margin: 1rem 0;
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
+        margin: 2rem 0;
+        box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .result-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: rotate 10s linear infinite;
+    }
+    
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
     }
     
     .result-card h3 {
         margin: 0;
-        font-size: 1rem;
-        font-weight: 500;
+        font-size: 1.1rem;
+        font-weight: 400;
         color: rgba(255,255,255,0.9);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        position: relative;
+        z-index: 1;
     }
     
     .result-card h2 {
-        margin: 0.5rem 0;
-        font-size: 1.6rem;
-        font-weight: 600;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin: 1rem 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        position: relative;
+        z-index: 1;
     }
     
     .result-card p {
         margin: 0;
-        font-size: 1rem;
+        font-size: 1.2rem;
         opacity: 0.95;
+        position: relative;
+        z-index: 1;
     }
     
-    /* Info cards */
+    /* Info cards with glass effect */
     .info-card {
-        background: linear-gradient(135deg, #f1f8e9, #e8f5e8);
-        border-radius: 10px;
-        padding: 1.2rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #4caf50;
+        background: rgba(103, 126, 234, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.8rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(103, 126, 234, 0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .info-card:hover {
+        background: rgba(103, 126, 234, 0.15);
+        border-color: rgba(103, 126, 234, 0.4);
+        transform: translateX(5px);
     }
     
     /* Ingredient card */
     .ingredient-card {
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-        border-radius: 10px;
-        padding: 1.2rem;
-        margin: 0.5rem 0;
-        border-left: 4px solid #2196f3;
+        background: rgba(118, 75, 162, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.8rem;
+        margin: 1rem 0;
+        border: 1px solid rgba(118, 75, 162, 0.2);
+        transition: all 0.3s ease;
     }
     
-    /* Nutrient badges with green/blue theme */
+    .ingredient-card:hover {
+        background: rgba(118, 75, 162, 0.15);
+        border-color: rgba(118, 75, 162, 0.4);
+        transform: translateX(5px);
+    }
+    
+    /* Nutrient badges with neon glow */
     .nutrient-badge {
-        background: white;
-        border-radius: 10px;
-        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        padding: 1.5rem 1rem;
         text-align: center;
-        margin: 0.4rem;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        margin: 0.5rem;
+        border: 2px solid;
         transition: all 0.3s ease;
-        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .nutrient-badge::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s, height 0.4s;
+    }
+    
+    .nutrient-badge:hover::before {
+        width: 200%;
+        height: 200%;
     }
     
     .nutrient-badge:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        transform: translateY(-8px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
     
     .nutrient-badge h4 {
-        margin: 0;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #666;
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+        z-index: 1;
     }
     
     .nutrient-badge p {
-        margin: 0.3rem 0 0 0;
-        font-size: 1.2rem;
+        margin: 0;
+        font-size: 1.5rem;
         font-weight: 700;
-        color: #333;
+        position: relative;
+        z-index: 1;
     }
     
     .nutrient-badge.calories {
-        border-color: #ff7043;
-        background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+        border-color: #ff6b6b;
+        color: #ff6b6b;
+        box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
     }
     
     .nutrient-badge.protein {
-        border-color: #42a5f5;
-        background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+        border-color: #4ecdc4;
+        color: #4ecdc4;
+        box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
     }
     
     .nutrient-badge.fat {
-        border-color: #ffa726;
-        background: linear-gradient(135deg, #fff8e1, #ffecb3);
+        border-color: #ffe66d;
+        color: #ffe66d;
+        box-shadow: 0 4px 15px rgba(255, 230, 109, 0.3);
     }
     
     .nutrient-badge.carbs {
-        border-color: #66bb6a;
-        background: linear-gradient(135deg, #e8f5e8, #c8e6c9);
+        border-color: #95e1d3;
+        color: #95e1d3;
+        box-shadow: 0 4px 15px rgba(149, 225, 211, 0.3);
     }
     
     .nutrient-badge.fiber {
-        border-color: #ab47bc;
-        background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+        border-color: #c7b3f5;
+        color: #c7b3f5;
+        box-shadow: 0 4px 15px rgba(199, 179, 245, 0.3);
     }
     
     .nutrient-badge.sugar {
-        border-color: #ec407a;
-        background: linear-gradient(135deg, #fce4ec, #f8bbd9);
+        border-color: #ff9ff3;
+        color: #ff9ff3;
+        box-shadow: 0 4px 15px rgba(255, 159, 243, 0.3);
     }
     
-    /* Upload area */
+    /* Upload area with animated border */
     .upload-area {
-        background: linear-gradient(135deg, #e8f5e8, #e3f2fd);
-        border: 2px dashed #4caf50;
-        border-radius: 12px;
-        padding: 2rem;
+        background: rgba(255, 255, 255, 0.03);
+        border: 3px dashed rgba(102, 126, 234, 0.4);
+        border-radius: 20px;
+        padding: 3rem 2rem;
         text-align: center;
-        margin: 1.5rem 0;
+        margin: 2rem 0;
         transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .upload-area::before {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+        background-size: 300% 300%;
+        border-radius: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: -1;
+        animation: gradientRotate 4s ease infinite;
+    }
+    
+    @keyframes gradientRotate {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .upload-area:hover::before {
+        opacity: 1;
     }
     
     .upload-area:hover {
-        border-color: #2196f3;
-        background: linear-gradient(135deg, #e3f2fd, #e8f5e8);
+        border-color: transparent;
+        background: rgba(255, 255, 255, 0.05);
+        transform: scale(1.02);
     }
     
     /* Progress bar */
     .stProgress > div > div {
-        background: linear-gradient(90deg, #4caf50, #2196f3);
-        border-radius: 6px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
     }
     
-    /* Image styling */
+    /* Image styling with frame effect */
     .stImage > img {
-        border-radius: 12px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        border: 2px solid rgba(76, 175, 80, 0.1);
+        border-radius: 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+        border: 3px solid rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
     }
     
-    /* Button styling */
+    .stImage > img:hover {
+        transform: scale(1.02);
+        border-color: rgba(102, 126, 234, 0.6);
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Button styling with glow effect */
     .stButton > button {
-        background: linear-gradient(135deg, #4caf50, #2196f3);
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         border: none;
         color: white;
         font-weight: 600;
-        border-radius: 8px;
-        padding: 0.6rem 1.5rem;
+        border-radius: 12px;
+        padding: 0.8rem 2rem;
         transition: all 0.3s ease;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .stButton > button::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+    
+    .stButton > button:hover::before {
+        width: 300px;
+        height: 300px;
     }
     
     .stButton > button:hover {
-        box-shadow: 0 6px 20px rgba(76, 175, 80, 0.3);
-        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(102, 126, 234, 0.6);
+        transform: translateY(-3px);
     }
     
     /* File uploader styling */
     .stFileUploader > div {
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
     }
     
     /* Data tables */
     .stDataFrame {
-        font-size: 0.9rem;
-        border-radius: 8px;
+        border-radius: 12px;
         overflow: hidden;
-    }
-    
-    /* Divider */
-    .modern-divider {
-        height: 2px;
-        background: linear-gradient(90deg, #4caf50, #2196f3);
-        margin: 2rem 0;
-        width: 100%;
-        border-radius: 1px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
     }
     
     /* Text styling */
     .food-title {
-        font-size: 1.3rem;
+        font-size: 1.8rem;
         font-weight: 700;
-        color: #2e7d32;
-        margin: 0 0 0.8rem 0;
+        color: #fff;
+        margin: 0 0 1rem 0;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
     .food-info {
-        font-size: 0.95rem;
-        color: #555;
-        margin: 0.4rem 0;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+        margin: 0.6rem 0;
         display: flex;
         align-items: center;
     }
     
     .food-info strong {
         font-weight: 600;
-        margin-right: 0.5rem;
-        color: #1976d2;
+        margin-right: 0.8rem;
+        color: #667eea;
+        min-width: 120px;
     }
     
     .ingredient-list {
-        font-size: 0.9rem;
-        line-height: 1.6;
-        color: #444;
+        font-size: 1rem;
+        line-height: 1.8;
+        color: rgba(255, 255, 255, 0.85);
     }
     
     /* Expander styling */
     .streamlit-expanderHeader {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: 600;
-        color: #2e7d32;
-        background: rgba(232, 245, 232, 0.5);
-        border-radius: 8px;
+        color: #fff;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 12px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        transition: all 0.3s ease;
     }
     
-    /* Instructions styling */
+    .streamlit-expanderHeader:hover {
+        background: rgba(102, 126, 234, 0.2);
+        border-color: rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Instructions cards with hover effects */
     .instruction-item {
         text-align: center;
-        padding: 1rem;
-        background: linear-gradient(135deg, rgba(232, 245, 232, 0.3), rgba(227, 242, 253, 0.3));
-        border-radius: 8px;
-        margin: 0.5rem;
+        padding: 2rem 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        margin: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.4s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .instruction-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .instruction-item:hover::before {
+        left: 100%;
+    }
+    
+    .instruction-item:hover {
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(102, 126, 234, 0.4);
+        box-shadow: 0 15px 40px rgba(102, 126, 234, 0.2);
     }
     
     .instruction-title {
-        color: #2e7d32;
-        margin-bottom: 0.5rem;
-        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 0.8rem;
+        font-size: 1.3rem;
         font-weight: 600;
     }
     
     .instruction-desc {
-        color: #666;
-        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 1rem;
         margin: 0;
+        line-height: 1.6;
     }
     
     /* Supported foods styling */
     .food-list {
-        color: #555;
-        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
         margin: 0;
         padding-left: 1.5rem;
-        line-height: 1.6;
+        line-height: 2;
     }
     
     .food-list li {
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.8rem;
+        transition: all 0.3s ease;
+    }
+    
+    .food-list li:hover {
+        color: #667eea;
+        transform: translateX(5px);
     }
     
     .food-list strong {
-        color: #2e7d32;
+        color: #764ba2;
+        font-weight: 600;
+    }
+    
+    /* Warning/Info messages */
+    .stAlert {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+    }
+    
+    /* Spinner customization */
+    .stSpinner > div {
+        border-top-color: #667eea !important;
     }
     
     /* Responsive adjustments */
     @media (max-width: 768px) {
         .app-title {
-            font-size: 1.6rem;
+            font-size: 2.5rem;
         }
         
-        .modern-card {
-            padding: 1rem;
-            margin: 0.7rem 0;
+        .app-emoji {
+            font-size: 3rem;
+        }
+        
+        .glass-card {
+            padding: 1.5rem;
+            margin: 1rem 0;
         }
         
         .result-card h2 {
-            font-size: 1.4rem;
+            font-size: 2rem;
         }
         
         .nutrient-badge {
-            padding: 0.8rem;
-            margin: 0.2rem;
+            padding: 1.2rem 0.8rem;
+            margin: 0.3rem;
+        }
+        
+        .instruction-item {
+            padding: 1.5rem 1rem;
         }
     }
-
-    /* Background and text color change */
-    .stApp {
-        background-color: black;
-        color: white;
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2, #f093fb);
     }
 </style>
 """, unsafe_allow_html=True)
