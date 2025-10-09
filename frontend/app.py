@@ -26,48 +26,181 @@ st.set_page_config(
 )
 
 # Helper Classes
-class APIClient:
-    """Handles all API communications with the backend."""
-
-    def __init__(self, backend_url: str):
-        self.backend_url = backend_url
-        self.classify_endpoint = f"{backend_url}/api/classify"
-        self.search_endpoint = f"{backend_url}/api/search"
-
-    def classify_image(self, uploaded_file):
-        """Send image to backend API for classification."""
-        try:
-            files = {'file': (uploaded_file.name, uploaded_file.getvalue(), uploaded_file.type)}
-            response = requests.post(self.classify_endpoint, files=files, timeout=30)
-
-            if response.status_code == 200:
-                return response.json()
-            else:
-                st.error(f"Backend API error: {response.status_code}")
-                return None
-        except requests.exceptions.RequestException as e:
-            st.error(f"Failed to connect to backend: {e}")
-            return None
-
-    def search_food_data(self, food_name: str):
-        """Search for food data using the USDA API via backend."""
-        try:
-            params = {'food_name': food_name}
-            response = requests.get(self.search_endpoint, params=params, timeout=30)
-
-            if response.status_code == 200:
-                return response.json()
-            else:
-                st.error(f"Food search API error: {response.status_code}")
-                return None
-        except requests.exceptions.RequestException as e:
-            st.error(f"Failed to search food data: {e}")
-            return None
-
-
 class NutritionDisplay:
     """Handles display of nutrition data and ingredients."""
 
+    @staticmethod
+    def parse_text_nutrition(text_data: str) -> dict:
+        """Parse text-based nutrition data into structured format."""
+        result = {
+            'title': '',
+            'serving_size': '',
+            'nutrients': {},
+            'ingredients': ''
+        }
+
+        lines = text_data.strip().split('\n')
+        current_section = None
+
+        for line in lines:
+            line = line.strip()
+            if not line or line.startswith('**') and line.endswith('**') and ':' not in line:
+                continue
+
+            # Parse title
+            if line.startswith('**Title**:'):
+                result['title'] = line.replace('**Title**:', '').strip()
+
+            # Parse serving size
+            elif line.startswith('**Serving Size**:'):
+                result['serving_size'] = line.replace('**Serving Size**:', '').strip()
+
+            # Parse key nutrients section
+            elif line.startswith('**Key Nutrients**:'):
+                current_section = 'nutrients'
+
+            # Parse ingredients section
+            elif line.startswith('**Ingredients**:'):
+                current_section = 'ingredients'
+
+            # Parse nutrient values
+            elif current_section == 'nutrients' and line.startswith('-'):
+                # Format: "- Energy: 163 kcal"
+                nutrient_line = line[1:].strip()  # Remove the dash
+                if ':' in nutrient_line:
+                    name, value = nutrient_line.split(':', 1)
+                    result['nutrients'][name.strip()] = value.strip()
+
+            # Parse ingredients text
+            elif current_section == 'ingredients' and line:
+                if result['ingredients']:
+                    result['ingredients'] += ' ' + line
+                else:
+                    result['ingredients'] = line
+
+        return result
+
+    @staticmethod
+    def display_food_info_from_text(parsed_data: dict):
+        """Display basic food information from parsed text data."""
+        with st.container():
+            st.markdown('<div class="modern-card">', unsafe_allow_html=True)
+            st.markdown('<div class="category-header"><span>📊</span> Food Information</div>', unsafe_allow_html=True)
+
+            title = parsed_data.get('title', 'N/A')
+            serving = parsed_data.get('serving_size', 'N/A')
+
+            st.markdown(f"""
+            <div class="info-card">
+                <div class="food-title">{title}</div>
+                <div class="food-info"><strong>Serving Size:</strong> {serving}</div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    @staticmethod
+    def display_ingredients_from_text(parsed_data: dict):
+        """Display ingredients information from parsed text data."""
+        with st.container():
+            st.markdown('<div class="modern-card">', unsafe_allow_html=True)
+            st.markdown('<div class="category-header"><span>🥄</span> Ingredients</div>', unsafe_allow_html=True)
+
+            ingredients = parsed_data.get('ingredients', '').strip()
+
+            if ingredients:
+                # Split by periods or commas to create a better formatted list
+                if '.' in ingredients:
+                    ingredients_parts = ingredients.split('.')
+                else:
+                    ingredients_parts = [ingredients]
+
+                formatted_ingredients = '<br>'.join([f"• {part.strip()}" for part in ingredients_parts if part.strip()])
+
+                st.markdown(f"""
+                <div class="ingredient-card">
+                    <div class="ingredient-list">
+                        {formatted_ingredients}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown("""
+                <div class="ingredient-card">
+                    <p style="color: #888; margin: 0; font-size: 0.9rem;">No ingredients information available for this food item.</p>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    @staticmethod
+    def display_key_nutrients_from_text(parsed_data: dict):
+        """Display key nutrients from parsed text data in badge format."""
+        with st.container():
+            st.markdown('<div class="modern-card">', unsafe_allow_html=True)
+            st.markdown('<div class="category-header"><span>🥗</span> Key Nutrients</div>', unsafe_allow_html=True)
+
+            nutrients = parsed_data.get('nutrients', {})
+
+            if nutrients:
+                # Map nutrient names to display format
+                nutrient_display = {}
+                nutrient_classes = {}
+
+                for name, value in nutrients.items():
+                    if 'Energy' in name or 'energy' in name.lower():
+                        nutrient_display['Calories'] = value
+                        nutrient_classes['Calories'] = "calories"
+                    elif 'Protein' in name:
+                        nutrient_display['Protein'] = value
+                        nutrient_classes['Protein'] = "protein"
+                    elif 'lipid' in name or 'fat' in name.lower():
+                        nutrient_display['Fat'] = value
+                        nutrient_classes['Fat'] = "fat"
+                    elif 'Carbohydrate' in name:
+                        nutrient_display['Carbs'] = value
+                        nutrient_classes['Carbs'] = "carbs"
+                    elif 'Fiber' in name:
+                        nutrient_display['Fiber'] = value
+                        nutrient_classes['Fiber'] = "fiber"
+                    elif 'Sodium' in name:
+                        nutrient_display['Sodium'] = value
+                        nutrient_classes['Sodium'] = "sugar"  # Reuse sugar styling
+
+                # Display in columns
+                num_nutrients = len(nutrient_display)
+                cols = st.columns(min(num_nutrients, 3))
+
+                for i, (nutrient, value) in enumerate(nutrient_display.items()):
+                    with cols[i % len(cols)]:
+                        st.markdown(f"""
+                        <div class="nutrient-badge {nutrient_classes.get(nutrient, '')}">
+                            <h4>{nutrient}</h4>
+                            <p>{value}</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+            else:
+                st.info("No nutrient information available")
+
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    @staticmethod
+    def display_complete_nutrition_from_text(parsed_data: dict):
+        """Display complete nutrition facts in expandable table from parsed text."""
+        nutrients = parsed_data.get('nutrients', {})
+
+        if nutrients:
+            with st.expander("📋 Complete Nutrition Facts", expanded=False):
+                nutrition_data = []
+
+                for name, value in nutrients.items():
+                    nutrition_data.append({
+                        'Nutrient': name,
+                        'Amount': value
+                    })
+
+                df = pd.DataFrame(nutrition_data)
+                st.dataframe(df, use_container_width=True, hide_index=True, height=350)
+
+    # Keep original methods for backwards compatibility
     @staticmethod
     def display_food_info(food_item: dict):
         """Display basic food information in a card."""
@@ -180,27 +313,42 @@ class NutritionDisplay:
             df = pd.DataFrame(nutrition_data)
             st.dataframe(df, use_container_width=True, hide_index=True, height=350)
 
-    def display_nutrition_analysis(self, food_data: dict):
-        """Display complete nutrition analysis including food info, ingredients, and nutrients."""
-        if not food_data or not food_data.get('foods'):
-            st.warning("⚠️ No nutrition data available for this food item.")
-            return
+    def display_nutrition_analysis(self, food_data):
+        """Display complete nutrition analysis - handles both text and JSON formats."""
+        # Check if it's text-based output
+        if isinstance(food_data, str):
+            # Parse the text format
+            parsed_data = self.parse_text_nutrition(food_data)
 
-        food_item = food_data['foods'][0]
+            # Display parsed information
+            self.display_food_info_from_text(parsed_data)
+            self.display_ingredients_from_text(parsed_data)
+            self.display_key_nutrients_from_text(parsed_data)
+            self.display_complete_nutrition_from_text(parsed_data)
 
-        # Display food information
-        self.display_food_info(food_item)
+        # Handle JSON format (legacy support)
+        elif isinstance(food_data, dict):
+            if not food_data or not food_data.get('foods'):
+                st.warning("⚠️ No nutrition data available for this food item.")
+                return
 
-        # Display ingredients
-        self.display_ingredients(food_item)
+            food_item = food_data['foods'][0]
 
-        # Display nutrients
-        nutrients = food_item.get('foodNutrients', [])
-        if nutrients:
-            self.display_key_nutrients(nutrients)
-            self.display_complete_nutrition_table(nutrients)
+            # Display food information
+            self.display_food_info(food_item)
+
+            # Display ingredients
+            self.display_ingredients(food_item)
+
+            # Display nutrients
+            nutrients = food_item.get('foodNutrients', [])
+            if nutrients:
+                self.display_key_nutrients(nutrients)
+                self.display_complete_nutrition_table(nutrients)
+            else:
+                st.warning("No detailed nutrition information available for this food item.")
         else:
-            st.warning("No detailed nutrition information available for this food item.")
+            st.warning("⚠️ Invalid nutrition data format.")
 
 
 class UIComponents:
@@ -652,7 +800,6 @@ st.markdown("""
 
 if __name__ == '__main__':
     # Initialize helper classes
-    api_client = APIClient("http://localhost:8004")
     nutrition_display = NutritionDisplay()
     ui_components = UIComponents()
 
@@ -717,16 +864,26 @@ if __name__ == '__main__':
         # Search for and display nutrition data
         with st.spinner('🔍 Fetching nutrition information...'):
             search_term = predicted_class.replace('_', ' ')
+
             food_data_str = asyncio.run(search_food_nutrition(search_term))
-            try:
-                if isinstance(food_data_str, str):
-                    food_data = json.loads(food_data_str)
+            print(food_data_str)
+            # The agent returns formatted text, not JSON - pass it directly
+            if food_data_str and isinstance(food_data_str, str):
+                # Check if it's a text response (starts with **Title** or similar)
+                if '**Title**' in food_data_str or '**Serving Size**' in food_data_str:
+                    food_data = food_data_str  # Use text directly
                 else:
-                    food_data = None
-            except (json.JSONDecodeError, TypeError):
-                food_data = None
+                    # Try to parse as JSON (legacy format)
+                    try:
+                        food_data = json.loads(food_data_str)
+                    except (json.JSONDecodeError, TypeError):
+                        food_data = food_data_str  # Fall back to text
+            else:
+                food_data = food_data_str
+
         if food_data:
             st.markdown('<div class="category-header" style="font-size: 1.3rem; justify-content: center;"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
+
             nutrition_display.display_nutrition_analysis(food_data)
         else:
             st.warning(f"⚠️ Could not find nutrition information for '{search_term}'.")
@@ -745,13 +902,19 @@ if __name__ == '__main__':
                 if manual_search:
                     with st.spinner('🔍 Searching...'):
                         manual_food_data_str = asyncio.run(search_food_nutrition(manual_search))
-                        try:
-                            if isinstance(manual_food_data_str, str):
-                                manual_food_data = json.loads(manual_food_data_str)
+
+                        # Handle text response
+                        if manual_food_data_str and isinstance(manual_food_data_str, str):
+                            if '**Title**' in manual_food_data_str or '**Serving Size**' in manual_food_data_str:
+                                manual_food_data = manual_food_data_str
                             else:
-                                manual_food_data = None
-                        except (json.JSONDecodeError, TypeError):
-                            manual_food_data = None
+                                try:
+                                    manual_food_data = json.loads(manual_food_data_str)
+                                except (json.JSONDecodeError, TypeError):
+                                    manual_food_data = manual_food_data_str
+                        else:
+                            manual_food_data = manual_food_data_str
+
                     if manual_food_data:
                         nutrition_display.display_nutrition_analysis(manual_food_data)
 
