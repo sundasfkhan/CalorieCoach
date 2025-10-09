@@ -1161,7 +1161,7 @@ class NutritionDisplay:
         """Display basic food information from parsed text data."""
         with st.container():
             
-            st.markdown('<div class="category-header"><span>📊</span> Food Information</div>', unsafe_allow_html=True)
+            st.markdown('<div class="category-header"><span>📊</span> Food Information & Nutrition Analysis</div>', unsafe_allow_html=True)
 
             title = parsed_data.get('title', 'N/A')
             serving = parsed_data.get('serving_size', 'N/A')
@@ -2238,7 +2238,6 @@ if __name__ == '__main__':
                         food_data = food_data_str
 
                 if food_data:
-                    st.markdown('<div class="category-header"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
                     nutrition_display.display_nutrition_analysis(food_data)
                 else:
                     st.warning(f"⚠️ Could not find nutrition information for '{search_term}'.")
