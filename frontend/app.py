@@ -1,16 +1,18 @@
 import streamlit as st
 from PIL import Image
 import requests
-import io
 import pandas as pd
 import asyncio
 import json
 import tempfile
 import os
 import sys
-sys.path.append('../agents')
-from nutritionist_agent import search_food_nutrition
-from foodImageClassifier_agent import classify_food_image
+
+# Add parent directory to path to import agents
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from agents.nutritionist_agent import search_food_nutrition
+from agents.foodImageClassifier_agent import classify_food_image
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -685,10 +687,13 @@ if __name__ == '__main__':
 
             try:
                 with st.spinner('🔍 Analyzing your food image...'):
-                    result_str = classify_food_image(image_path)
+                    result_str = asyncio.run(classify_food_image(image_path))
                     try:
-                        result = json.loads(result_str) if result_str else None
-                    except json.JSONDecodeError:
+                        if isinstance(result_str, str):
+                            result = json.loads(result_str)
+                        else:
+                            result = None
+                    except (json.JSONDecodeError, TypeError):
                         result = None
             finally:
                 os.unlink(image_path)
@@ -712,9 +717,14 @@ if __name__ == '__main__':
         # Search for and display nutrition data
         with st.spinner('🔍 Fetching nutrition information...'):
             search_term = predicted_class.replace('_', ' ')
-            food_data_str = search_food_nutrition(search_term)
-            food_data = json.loads(food_data_str) if food_data_str else None
-
+            food_data_str = asyncio.run(search_food_nutrition(search_term))
+            try:
+                if isinstance(food_data_str, str):
+                    food_data = json.loads(food_data_str)
+                else:
+                    food_data = None
+            except (json.JSONDecodeError, TypeError):
+                food_data = None
         if food_data:
             st.markdown('<div class="category-header" style="font-size: 1.3rem; justify-content: center;"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
             nutrition_display.display_nutrition_analysis(food_data)
@@ -734,8 +744,14 @@ if __name__ == '__main__':
 
                 if manual_search:
                     with st.spinner('🔍 Searching...'):
-                        manual_food_data_str = search_food_nutrition(manual_search)
-                        manual_food_data = json.loads(manual_food_data_str) if manual_food_data_str else None
+                        manual_food_data_str = asyncio.run(search_food_nutrition(manual_search))
+                        try:
+                            if isinstance(manual_food_data_str, str):
+                                manual_food_data = json.loads(manual_food_data_str)
+                            else:
+                                manual_food_data = None
+                        except (json.JSONDecodeError, TypeError):
+                            manual_food_data = None
                     if manual_food_data:
                         nutrition_display.display_nutrition_analysis(manual_food_data)
 

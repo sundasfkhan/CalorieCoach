@@ -11,7 +11,7 @@ load_dotenv()
 async def search_food_nutrition(food_name: str):
     """Search for nutrition information about a food item."""
     # Create server params for the local MCP tool process
-    mcp_server_prxy = StdioServerParams(command="python", args=[".././mcp_server/mcp_server.py"])
+    mcp_server_prxy = StdioServerParams(command="python", args=["../mcp_server/mcp_server.py"])
     tools = await mcp_server_tools(mcp_server_prxy)
     # Create an agent that can use the fetch tool.
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
@@ -19,12 +19,12 @@ async def search_food_nutrition(food_name: str):
     agent = AssistantAgent(
         name="nutritionist",
         system_message=(
-            "You are an expert nutritionist assistant. Your primary function is to use the 'mcp_server_tool' to answer user questions. "
-            "You MUST call the 'mcp_server_tool' whenever a user asks about food information, nutritional values, meal plans, or recipes. "
-            "Do not answer from your own knowledge base. Rely exclusively on the tool's output for your response."
+            "You are an expert nutritionist assistant. Use the 'search_foods' tool to search for food information. "
+            "After calling the tool, extract ONLY the JSON response from the tool result and return it exactly as is. "
+            "Do not add any explanation or text, just return the raw JSON object from the tool."
         ),
         model_client=model_client,
-        tools=tools,  # Make sure 'mcp_server_tool' is correctly defined in this list
+        tools=tools,
         reflect_on_tool_use=True
     )
 
