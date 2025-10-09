@@ -2213,6 +2213,67 @@ if __name__ == '__main__':
                 confidence = result.get('confidence')
 
                 ui_components.render_prediction_result(predicted_class, confidence)
+
+                # Divider within column
+                st.markdown('<div style="height: 2px; background: linear-gradient(90deg, #667eea, #764ba2); margin: 2rem 0; width: 100%; border-radius: 1px;"></div>', unsafe_allow_html=True)
+
+                # Search for and display nutrition data right after AI analysis
+                with st.spinner('🔍 Fetching nutrition information...'):
+                    search_term = predicted_class.replace('_', ' ')
+
+                    food_data_str = asyncio.run(search_food_nutrition(search_term))
+                    print(food_data_str)
+                    # The agent returns formatted text, not JSON - pass it directly
+                    if food_data_str and isinstance(food_data_str, str):
+                        # Check if it's a text response (starts with **Title** or similar)
+                        if '**Title**' in food_data_str or '**Serving Size**' in food_data_str:
+                            food_data = food_data_str  # Use text directly
+                        else:
+                            # Try to parse as JSON (legacy format)
+                            try:
+                                food_data = json.loads(food_data_str)
+                            except (json.JSONDecodeError, TypeError):
+                                food_data = food_data_str  # Fall back to text
+                    else:
+                        food_data = food_data_str
+
+                if food_data:
+                    st.markdown('<div class="category-header"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
+                    nutrition_display.display_nutrition_analysis(food_data)
+                else:
+                    st.warning(f"⚠️ Could not find nutrition information for '{search_term}'.")
+
+                    # Manual search section
+                    with st.container():
+
+                        st.markdown('<div class="category-header"><span>🔍</span> Manual Search</div>', unsafe_allow_html=True)
+
+                        manual_search = st.text_input(
+                            "Search for nutrition data:",
+                            placeholder="e.g., apple, chicken, rice",
+                            help="Enter a food name to search in the USDA database"
+                        )
+
+                        if manual_search:
+                            with st.spinner('🔍 Searching...'):
+                                manual_food_data_str = asyncio.run(search_food_nutrition(manual_search))
+
+                                # Handle text response
+                                if manual_food_data_str and isinstance(manual_food_data_str, str):
+                                    if '**Title**' in manual_food_data_str or '**Serving Size**' in manual_food_data_str:
+                                        manual_food_data = manual_food_data_str
+                                    else:
+                                        try:
+                                            manual_food_data = json.loads(manual_food_data_str)
+                                        except (json.JSONDecodeError, TypeError):
+                                            manual_food_data = manual_food_data_str
+                                else:
+                                    manual_food_data = manual_food_data_str
+
+                            if manual_food_data:
+                                nutrition_display.display_nutrition_analysis(manual_food_data)
+
+                        st.markdown('</div>', unsafe_allow_html=True)
             else:
                 st.error("❌ Failed to classify the image. Please try again.")
                 if result:
@@ -2220,68 +2281,6 @@ if __name__ == '__main__':
                 st.stop()
 
             st.markdown('</div>', unsafe_allow_html=True)
-
-        # Divider
-        st.markdown('<div class="modern-divider"></div>', unsafe_allow_html=True)
-
-        # Search for and display nutrition data
-        with st.spinner('🔍 Fetching nutrition information...'):
-            search_term = predicted_class.replace('_', ' ')
-
-            food_data_str = asyncio.run(search_food_nutrition(search_term))
-            print(food_data_str)
-            # The agent returns formatted text, not JSON - pass it directly
-            if food_data_str and isinstance(food_data_str, str):
-                # Check if it's a text response (starts with **Title** or similar)
-                if '**Title**' in food_data_str or '**Serving Size**' in food_data_str:
-                    food_data = food_data_str  # Use text directly
-                else:
-                    # Try to parse as JSON (legacy format)
-                    try:
-                        food_data = json.loads(food_data_str)
-                    except (json.JSONDecodeError, TypeError):
-                        food_data = food_data_str  # Fall back to text
-            else:
-                food_data = food_data_str
-
-        if food_data:
-            st.markdown('<div class="category-header" style="font-size: 1.3rem; justify-content: center;"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
-
-            nutrition_display.display_nutrition_analysis(food_data)
-        else:
-            st.warning(f"⚠️ Could not find nutrition information for '{search_term}'.")
-
-            # Manual search section
-            with st.container():
-                
-                st.markdown('<div class="category-header"><span>🔍</span> Manual Search</div>', unsafe_allow_html=True)
-
-                manual_search = st.text_input(
-                    "Search for nutrition data:",
-                    placeholder="e.g., apple, chicken, rice",
-                    help="Enter a food name to search in the USDA database"
-                )
-
-                if manual_search:
-                    with st.spinner('🔍 Searching...'):
-                        manual_food_data_str = asyncio.run(search_food_nutrition(manual_search))
-
-                        # Handle text response
-                        if manual_food_data_str and isinstance(manual_food_data_str, str):
-                            if '**Title**' in manual_food_data_str or '**Serving Size**' in manual_food_data_str:
-                                manual_food_data = manual_food_data_str
-                            else:
-                                try:
-                                    manual_food_data = json.loads(manual_food_data_str)
-                                except (json.JSONDecodeError, TypeError):
-                                    manual_food_data = manual_food_data_str
-                        else:
-                            manual_food_data = manual_food_data_str
-
-                    if manual_food_data:
-                        nutrition_display.display_nutrition_analysis(manual_food_data)
-
-                st.markdown('</div>', unsafe_allow_html=True)
     else:
         # Display welcome screen
         ui_components.render_welcome_screen()
