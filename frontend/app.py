@@ -3,6 +3,17 @@ from PIL import Image
 import requests
 import io
 import pandas as pd
+import asyncio
+import json
+import tempfile
+import os
+import sys
+sys.path.append('../agents')
+from nutritionist_agent import search_food_nutrition
+from foodImageClassifier_agent import classify_food_image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Set page config for mobile-responsive layout
 st.set_page_config(
@@ -667,8 +678,20 @@ if __name__ == '__main__':
             st.markdown('<div class="modern-card">', unsafe_allow_html=True)
             st.markdown('<div class="category-header"><span>🤖</span> AI Analysis</div>', unsafe_allow_html=True)
 
-            with st.spinner('🔍 Analyzing your food image...'):
-                result = api_client.classify_image(uploaded_file)
+            # Save uploaded file to temp path for agent
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                tmp_file.write(uploaded_file.getvalue())
+                image_path = tmp_file.name
+
+            try:
+                with st.spinner('🔍 Analyzing your food image...'):
+                    result_str = classify_food_image(image_path)
+                    try:
+                        result = json.loads(result_str) if result_str else None
+                    except json.JSONDecodeError:
+                        result = None
+            finally:
+                os.unlink(image_path)
 
             if result and result.get('success'):
                 predicted_class = result.get('predicted_class')
@@ -689,7 +712,8 @@ if __name__ == '__main__':
         # Search for and display nutrition data
         with st.spinner('🔍 Fetching nutrition information...'):
             search_term = predicted_class.replace('_', ' ')
-            food_data = api_client.search_food_data(search_term)
+            food_data_str = search_food_nutrition(search_term)
+            food_data = json.loads(food_data_str) if food_data_str else None
 
         if food_data:
             st.markdown('<div class="category-header" style="font-size: 1.3rem; justify-content: center;"><span>📊</span> Nutrition Analysis</div>', unsafe_allow_html=True)
@@ -710,7 +734,8 @@ if __name__ == '__main__':
 
                 if manual_search:
                     with st.spinner('🔍 Searching...'):
-                        manual_food_data = api_client.search_food_data(manual_search)
+                        manual_food_data_str = search_food_nutrition(manual_search)
+                        manual_food_data = json.loads(manual_food_data_str) if manual_food_data_str else None
                     if manual_food_data:
                         nutrition_display.display_nutrition_analysis(manual_food_data)
 

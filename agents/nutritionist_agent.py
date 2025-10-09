@@ -8,12 +8,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-async def main() -> None:
-
+async def search_food_nutrition(food_name: str):
+    """Search for nutrition information about a food item."""
     # Create server params for the local MCP tool process
     mcp_server_prxy = StdioServerParams(command="python", args=[".././mcp_server/mcp_server.py"])
     tools = await mcp_server_tools(mcp_server_prxy)
-    print("MCP Server tools loaded")
     # Create an agent that can use the fetch tool.
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
 
@@ -30,11 +29,12 @@ async def main() -> None:
     )
 
     # Let the agent fetch the content of a URL and summarize it.
-    result = await agent.run(task="tell me about food: samosa" , cancellation_token=CancellationToken())
-    print(result.messages[-1].content)
+    result = await agent.run(task=f"tell me about food: {food_name}" , cancellation_token=CancellationToken())
+    return result.messages[-1].content
 
-
-
+async def main() -> None:
+    result = await search_food_nutrition("samosa")
+    print(result)
 
 if __name__ == "__main__":
     asyncio.run(main())

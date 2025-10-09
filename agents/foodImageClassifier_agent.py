@@ -8,13 +8,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-async def main() -> None:
+async def classify_food_image(image_path: str):
+    """Classify a food image and return the result."""
     # Create server params for the local MCP tool process
     mcp_server_prxy = StdioServerParams(command="python", args=[".././mcp_server/mcp_server.py"])
     tools = await mcp_server_tools(mcp_server_prxy)
-    print("MCP Server tools loaded")
-    # Create an agent that can use the fetch tool.
-
     # Create an agent that can use the classify tool
     model_client = OpenAIChatCompletionClient(model="gpt-4o")
     agent = AssistantAgent(
@@ -28,9 +26,13 @@ async def main() -> None:
         reflect_on_tool_use=True
     )
 
-    # Example task: classify a food image
-    result = await agent.run(task="classify this food image: C:\Projects\CalorieCoach\data\Test\chicken_curry\chicken_curry-1016.jpg")  #C:\Projects\CalorieCoach\data\Test\donut\Donut-10005.jpeg", cancellation_token=CancellationToken())
-    print(result.messages[-1].content)
+    # Classify the food image
+    result = await agent.run(task=f"classify this food image: {image_path}", cancellation_token=CancellationToken())
+    return result.messages[-1].content
+
+async def main() -> None:
+    result = await classify_food_image("C:\\Projects\\CalorieCoach\\data\\Test\\chicken_curry\\chicken_curry-1016.jpg")
+    print(result)
 
 if __name__ == "__main__":
     asyncio.run(main())
