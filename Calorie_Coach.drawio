@@ -1,6 +1,6 @@
-<mxfile host="drawio-plugin" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" modified="2025-09-25T22:21:12.833Z" etag="qDL37eZ2LPLs7ex_ksZJ" version="22.1.22" type="embed" pages="2">
+<mxfile host="drawio-plugin" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36" modified="2025-10-10T00:02:20.711Z" etag="BHoUQT4UBAZaiakTPkIi" version="22.1.22" type="embed" pages="2">
   <diagram name="Architecture with Agentic Layer" id="fHTXW7rIw0GSu0zwNXze">
-    <mxGraphModel dx="1030" dy="2912" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1031" dy="2912" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -43,13 +43,13 @@
             <mxPoint x="500" y="-1090" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h5wDumh7xr-tLEUtpDts-42" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.033;entryY=0.392;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="MsOpfCJwf6dWTmrJJ_BN-5" target="9">
+        <mxCell id="h5wDumh7xr-tLEUtpDts-42" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.033;entryY=0.392;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="MsOpfCJwf6dWTmrJJ_BN-5" target="9" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="720" y="-830" as="sourcePoint" />
             <mxPoint x="730" y="-942" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="h5wDumh7xr-tLEUtpDts-43" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.033;entryY=0.392;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+        <mxCell id="h5wDumh7xr-tLEUtpDts-43" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.033;entryY=0.392;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="650" y="-769.5" as="sourcePoint" />
             <mxPoint x="744" y="-770.5" as="targetPoint" />
@@ -59,7 +59,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="zqcrIMS-tlgcJtv551Y8" name="Architecture without Agentic Layer">
-    <mxGraphModel dx="1030" dy="1812" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="1031" dy="1812" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -81,13 +81,13 @@
             <mxPoint x="302.5999999999999" y="-1110.16" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Hd5HRqlmG4XPSa01PqDr-1" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+        <mxCell id="Hd5HRqlmG4XPSa01PqDr-1" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="650" y="-930" as="sourcePoint" />
             <mxPoint x="740" y="-930" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="Hd5HRqlmG4XPSa01PqDr-2" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" edge="1" parent="1">
+        <mxCell id="Hd5HRqlmG4XPSa01PqDr-2" value="" style="endArrow=classic;startArrow=classic;html=1;rounded=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="650" y="-770.5" as="sourcePoint" />
             <mxPoint x="740" y="-770.5" as="targetPoint" />
