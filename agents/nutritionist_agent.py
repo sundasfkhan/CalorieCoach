@@ -29,7 +29,7 @@ async def search_food_nutrition(food_name: str):
             "If the 'foods' array is empty or does not exist, you must inform the user that you could not find any information for their query. "
             "Your summary for the food item must follow this exact format:\n"
             "1.  **Title**: Display the food's 'description' and don't show the 'brandName'.\n"
-            "2.  **Serving Size**: State the serving size using the 'householdServingFullText' field.\n"
+            "2.  **Serving Size**: State the serving size using the 'servingSize' field.\n"
             "3.  **Key Nutrients**: Iterate through the 'foodNutrients' array and pull out the specific values for 'Energy', 'Protein', 'Total lipid (fat)', 'Carbohydrate, by difference', 'Fiber, total dietary', and 'Sodium, Na'. Display them as a simple list.\n"
             "4.  **Ingredients**: Display the full, unmodified string from the 'ingredients' field."
         ),
@@ -43,7 +43,7 @@ async def search_food_nutrition(food_name: str):
     return result.messages[-1].content
 
 async def main() -> None:
-    result = await search_food_nutrition("chicken biryani")
+    result = await search_food_nutrition("cheesecake")
     print(result)
 
 if __name__ == "__main__":
